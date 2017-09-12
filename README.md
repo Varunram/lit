@@ -1,5 +1,6 @@
 # lit - a lightning node you can run on your own
 ![Lit Logo](litlogo145.png)
+TRIGGERED
 
 Under development, not for use with real money.
 
