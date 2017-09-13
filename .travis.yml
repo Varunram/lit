@@ -19,7 +19,7 @@ install:
   - PATH=$PATH:$PWD/litecoin-0.13.2/bin
   - sudo pip3 install --upgrade pip
   - pip3 install requests
-  - pip3 install websocket-client
+  - sudo pip3 install websocket-client
 script:
   - go get -v ./...
   - go test ./...
