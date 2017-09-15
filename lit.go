@@ -50,7 +50,7 @@ func setConfig(lc *LitConfig) {
 	tvtcptr := flag.String("tvtc", "", "vertcoin testnet full node")
 	vtcptr := flag.String("vtc", "", "vertcoin mainnet full node")
 
-	resyncprt := flag.Bool("resync", false, "force resync from given tip")
+	resyncptr := flag.Bool("resync", false, "force resync from given tip")
 
 	rpcportptr := flag.Int("rpcport", 8001, "port to listen for RPC")
 
@@ -64,7 +64,7 @@ func setConfig(lc *LitConfig) {
 
 	lc.litereghost = *literegptr
 
-	lc.reSync = *resyncprt
+	lc.reSync = *resyncptr
 	lc.hard = !*easyptr
 	lc.verbose = *verbptr
 
