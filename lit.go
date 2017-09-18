@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/viper"
+
 	"github.com/mit-dci/lit/coinparam"
 	"github.com/mit-dci/lit/litbamf"
 	"github.com/mit-dci/lit/litrpc"
@@ -33,6 +35,7 @@ type LitConfig struct {
 	verbose    bool
 	rpcport    uint16
 	litHomeDir string
+	configFile string
 
 	Params *coinparam.Params
 }
@@ -54,6 +57,8 @@ func setConfig(lc *LitConfig) {
 
 	rpcportptr := flag.Int("rpcport", 8001, "port to listen for RPC")
 
+	confptr := flag.String("conf", "", "Load config file from ~/.lit/config.toml or explicitly specify a path to the config file")
+
 	litHomeDir := flag.String("dir",
 		filepath.Join(os.Getenv("HOME"), litHomeDirName), "lit home directory")
 
@@ -69,6 +74,7 @@ func setConfig(lc *LitConfig) {
 	lc.verbose = *verbptr
 
 	lc.rpcport = uint16(*rpcportptr)
+	lc.configFile = *confptr
 
 	lc.litHomeDir = *litHomeDir
 }
@@ -171,6 +177,86 @@ func main() {
 	setConfig(conf)
 
 	// create lit home directory if the diretory does not exist
+	if conf.configFile != "" { // the user has provided us with a path
+		viper.SetConfigName(strings.Split(conf.configFile, "/")[0])
+		viper.AddConfigPath(strings.Join(strings.Split(conf.configFile, "/")[:(len(strings.Split(conf.configFile, "/"))-1)], "/"))
+
+		err := viper.ReadInConfig()
+		if err != nil {
+			// Proceed with normal execution with CLI flags
+			fmt.Println("Error in reading config file or config file not found")
+			// Maybe load defaults here?
+		} else {
+			// replacements for nodeAddr
+			conf.tn3host = viper.GetString("config.tn3host")
+			conf.reghost = viper.GetString("config.reghost")
+			conf.lt4host = viper.GetString("config.lt4host")
+			conf.rpcport = uint16(viper.GetInt("config.rpcport"))
+			conf.verbose = viper.GetBool("config.verbose")
+			conf.reSync = viper.GetBool("config.reSync")
+			conf.litHomeDir = viper.GetString("config.litHomeDir")
+
+			// We are forced to have this ugly stuff due to viper not providing overriding. Lets change when we shift to another package
+			if conf.rpcport == 0 {
+				conf.rpcport = 8001
+			}
+
+			if (conf.tn3host == "") && (conf.reghost == "") && (conf.lt4host == "") {
+				// Cool, so they haven't given us anything to go by, so we go with tn3 because we like it
+				conf.tn3host = "localhost" // default value
+			}
+		}
+	} else { // Load from default conf file if any.
+
+		if _, err := os.Stat(filepath.Join(os.Getenv("HOME")) + "/.lit/config/config.toml"); os.IsNotExist(err) { // No conf file
+			fmt.Println("Nothing found in the configuration file. Proceeding with Command line parameters")
+			fmt.Println(err)
+		} else { // the config file exists. Lets get some of our data from there.
+			fmt.Println("CONF FILE THERE!!!")
+			viper.SetConfigName("config")
+			viper.AddConfigPath(filepath.Join(os.Getenv("HOME")) + "/.lit/config")
+			err := viper.ReadInConfig()
+
+			if err != nil {
+				fmt.Println("Error while reading the config file. Please check whether you have the right permissions")
+				fmt.Println(err)
+			} else {
+				// Figure out how to override conf params with CLI params
+				// If a CLI param is specified go ahead with it, else take that from the config file
+				if conf.tn3host == "" {
+					conf.tn3host = viper.GetString("config.tn3host")
+				}
+				if conf.reghost == "" {
+					conf.reghost = viper.GetString("config.reghost")
+				}
+				if conf.lt4host == "" {
+					conf.lt4host = viper.GetString("config.lt4host")
+				}
+				conf.rpcport = uint16(viper.GetInt("config.rpcport"))
+				if conf.rpcport == 0 {
+					conf.rpcport = 8001
+				}
+				if !(conf.verbose) {
+					conf.verbose = viper.GetBool("config.verbose")
+				}
+				if !(conf.reSync) {
+					conf.reSync = viper.GetBool("config.reSync")
+				}
+				if conf.litHomeDir == "" {
+					conf.litHomeDir = viper.GetString("config.litHomeDir")
+					if conf.litHomeDir == "" {
+						conf.litHomeDir = ".lit"
+					}
+				}
+
+				if (conf.tn3host == "") && (conf.reghost == "") && (conf.lt4host == "") {
+					// Cool, so they haven't given us anything to go by, so we go with tn3 because we like it
+					conf.tn3host = "localhost" //localhost =  default value
+				}
+			}
+		}
+	}
+
 	if _, err := os.Stat(conf.litHomeDir); os.IsNotExist(err) {
 		os.Mkdir(conf.litHomeDir, 0700)
 	}
