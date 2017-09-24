@@ -149,7 +149,8 @@ class TestBasic(LitTest):
         litnode0_channel = self.litnodes[0].ChannelList()['result']['Channels'][0]
         litnode1_channel = self.litnodes[1].ChannelList()['result']['Channels'][0]
 
-        print litnode0_channel, litnode1_channel
+        print litnode0_channel['MyBalance']
+        print litnode1_channel['MyBalance']
         
         assert litnode0_channel['MyBalance'] == 950000000
         assert litnode1_channel['MyBalance'] == 50000000
