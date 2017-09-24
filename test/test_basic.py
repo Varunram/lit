@@ -152,8 +152,8 @@ class TestBasic(LitTest):
         print (litnode0_channel['MyBalance'])
         print (litnode1_channel['MyBalance'])
         # Figure out why the balance doesn't update over here
-        assert litnode0_channel['MyBalance'] == 900000000 # 900000000
-        assert litnode1_channel['MyBalance'] == 100000000 # 50000000
+        assert litnode0_channel['MyBalance'] == 950000000 # 900000000
+        assert litnode1_channel['MyBalance'] == 50000000 # 50000000
 
         self.log_channel_balance(self.litnodes[0], 0, self.litnodes[1], 0)
         self.log_balances(self.coins[0]['code'])
@@ -162,8 +162,6 @@ class TestBasic(LitTest):
         self.log.info("Close channel")
         self.litnodes[0].CloseChannel(ChanIdx=1)
         self.confirm_transactions(self.coinnodes[0], self.litnodes[0], 1)
-
-        # Make sure balances are as expected                                                     #50000000
 
         print (self.litnodes[1].get_balance(self.coins[0]['code'])['TxoTotal'])
         print (self.coins[0]["feerate"])
