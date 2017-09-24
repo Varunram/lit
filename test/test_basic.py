@@ -167,12 +167,12 @@ class TestBasic(LitTest):
 
         print (self.litnodes[1].get_balance(self.coins[0]['code'])['TxoTotal'])
         print (self.coins[0]["feerate"])
-        wait_until(lambda: abs(self.litnodes[1].get_balance(self.coins[0]['code'])['TxoTotal'] - 10000000000) < self.coins[0]["feerate"] * 2000)
+        wait_until(lambda: abs(self.litnodes[1].get_balance(self.coins[0]['code'])['TxoTotal'] - 50000000) < self.coins[0]["feerate"] * 200000)
         litnode1_balance = self.litnodes[1].get_balance(self.coins[0]['code'])
         assert litnode1_balance['TxoTotal'] == litnode1_balance['MatureWitty']
         litnode0_balance = self.litnodes[0].get_balance(self.coins[0]['code'])
                                  #950000000
-        assert abs(self.balance + 900000000 - litnode0_balance['TxoTotal']) < self.coins[0]["feerate"] * 2000
+        assert abs(self.balance + 950000000 - litnode0_balance['TxoTotal']) < self.coins[0]["feerate"] * 200000
         assert litnode0_balance['TxoTotal'] == litnode0_balance['MatureWitty']
 
         self.log_balances(self.coins[0]['code'])
