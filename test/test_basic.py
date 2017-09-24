@@ -142,13 +142,15 @@ class TestBasic(LitTest):
         self.log_channel_balance(self.litnodes[0], 0, self.litnodes[1], 0)
 
         self.log.info("Push some funds back")
-        self.litnodes[1].Push(ChanIdx=1, Amt=50000000)
+        self.litnodes[1].Push(ChanIdx=0, Amt=50000000)
 
         self.log.info("Test case 1")
-        self.log_channel_balance(self.litnodes[0], 0, self.litnodes[1], 0)
 
         litnode0_channel = self.litnodes[0].ChannelList()['result']['Channels'][0]
         litnode1_channel = self.litnodes[1].ChannelList()['result']['Channels'][0]
+
+        print litnode0_channel, litnode1_channel
+        
         assert litnode0_channel['MyBalance'] == 950000000
         assert litnode1_channel['MyBalance'] == 50000000
 
