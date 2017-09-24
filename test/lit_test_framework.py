@@ -81,6 +81,7 @@ class LitTest():
             if self.args.debugger:
                 self.log.info("Attaching debugger")
                 pdb.set_trace()
+            return 1
         finally:
             self.cleanup()
 
