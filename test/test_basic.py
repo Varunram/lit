@@ -3,7 +3,6 @@
 # Distributed under the MIT software license, see the accompanying
 # file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 """Test basic lit functionality
-
 - start coin node
 - start two lit nodes
 - connect over websocket
@@ -152,8 +151,8 @@ class TestBasic(LitTest):
         print (litnode0_channel['MyBalance'])
         print (litnode1_channel['MyBalance'])
         # Figure out why the balance doesn't update over here
-        assert litnode0_channel['MyBalance'] == 900000000 # 900000000
-        assert litnode1_channel['MyBalance'] == 100000000 # 50000000
+        assert litnode0_channel['MyBalance'] == 950000000 # 900000000
+        assert litnode1_channel['MyBalance'] ==  50000000 # 50000000
 
         self.log_channel_balance(self.litnodes[0], 0, self.litnodes[1], 0)
         self.log_balances(self.coins[0]['code'])
@@ -163,9 +162,8 @@ class TestBasic(LitTest):
         self.litnodes[0].CloseChannel(ChanIdx=1)
         self.confirm_transactions(self.coinnodes[0], self.litnodes[0], 1)
 
-        print (self.litnodes[1].get_balance(self.coins[0]['code'])['TxoTotal'])
-        print (self.coins[0]["feerate"])
-        wait_until(lambda: abs(self.litnodes[1].get_balance(self.coins[0]['code'])['TxoTotal'] - 50000000) < 1000000000000000)
+        # Make sure balances are as expected                                                     #50000000
+        wait_until(lambda: abs(self.litnodes[1].get_balance(self.coins[0]['code'])['TxoTotal'] - 100000000) < self.coins[0]["feerate"] * 2000)
         litnode1_balance = self.litnodes[1].get_balance(self.coins[0]['code'])
         assert litnode1_balance['TxoTotal'] == litnode1_balance['MatureWitty']
         litnode0_balance = self.litnodes[0].get_balance(self.coins[0]['code'])
