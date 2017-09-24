@@ -164,6 +164,9 @@ class TestBasic(LitTest):
         self.confirm_transactions(self.coinnodes[0], self.litnodes[0], 1)
 
         # Make sure balances are as expected                                                     #50000000
+
+        print (self.litnodes[1].get_balance(self.coins[0]['code'])['TxoTotal'])
+        print (self.coins[0]["feerate"])
         wait_until(lambda: abs(self.litnodes[1].get_balance(self.coins[0]['code'])['TxoTotal'] - 10000000000) < self.coins[0]["feerate"] * 2000)
         litnode1_balance = self.litnodes[1].get_balance(self.coins[0]['code'])
         assert litnode1_balance['TxoTotal'] == litnode1_balance['MatureWitty']
