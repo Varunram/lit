@@ -52,7 +52,7 @@ class TestBasic(LitTest):
 
         # Start lit node 1 and open websocket connection
         self.add_litnode()
-        self.litnodes[1].args.extend(["-rpcport", "8002", self.coins[0]["wallit_code"], "127.0.0.1"])
+        self.litnodes[1].args.extend(["--rpcport", "8002", self.coins[0]["wallit_code"], "127.0.0.1"])
         self.litnodes[1].start_node()
         self.litnodes[1].add_rpc_connection("127.0.0.1", "8002")
 
