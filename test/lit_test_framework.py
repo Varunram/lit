@@ -131,9 +131,11 @@ class LitTest():
                 lcnode.process.kill()
 
         for litnode in self.litnodes:
-            litnode.stop_node()
             try:
+                litnode.stop_node()
                 litnode.process.wait(2)
+            except subprocess.WebSocketConnectionClosedException:
+                return 0
             except subprocess.TimeoutExpired:
                 litnode.process.kill()
 
