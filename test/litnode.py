@@ -10,7 +10,7 @@ import logging
 import os
 import subprocess
 
-import litrpc
+from litpy import litrpc
 
 LIT_BIN = "%s/../lit" % os.path.abspath(os.path.dirname(__file__))
 
