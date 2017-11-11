@@ -35,17 +35,8 @@ class LitConnection():
 
     def send_message(self, method, params):
         """Sends a websocket message to the lit node"""
-        logger.debug("Sending rpc message to %s:%s %s(%s)" % (self.ip, self.port, method, str(params)))
-        self.ws.send(json.dumps({"method": "LitRPC.%s" % method,
-                                 "params": [params],
-                                 "jsonrpc": "2.0",
-                                 "id": str(self.msg_id)}))
+        logger.debug("Hi")
 
-        self.msg_id = self.msg_id + 1 % 10000
-
-        resp = json.loads(self.ws.recv())
-        logger.debug("Recieved rpc response from %s:%s method: %s Response: %s." % (self.ip, self.port, method, str(resp)))
-        return resp
 
     def __getattr__(self, name):
         """Dispatches any unrecognised messages to the websocket connection"""
