@@ -53,8 +53,9 @@ class LitNode():
     def __getattr__(self, name):
         if self.rpc is not None:
             return self.rpc.__getattr__(name)
-        except AssertionError as e:
-            logger.degug("lit node not running")
+        else:
+            logger.debug("Hi")
+            return
 
     def get_balance(self, coin_type):
         # convenience method for grabbing the node balance
