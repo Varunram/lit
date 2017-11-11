@@ -10,7 +10,7 @@ import logging
 import os
 import subprocess
 
-from litpy import litrpc
+import litrpc
 
 LIT_BIN = "%s/../lit" % os.path.abspath(os.path.dirname(__file__))
 
@@ -43,13 +43,7 @@ class LitNode():
         self.process = subprocess.Popen([LIT_BIN] + self.args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def stop_node(self):
-        try:
-            self.Stop()
-        except AssertionError as e:
-            if e == "lit node not running":
-                logger.debug("node already stopped")
-            else:
-                raise
+        self.Stop()
 
     def add_rpc_connection(self, ip, port):
         logger.debug("Opening rpc connection to litnode %d: %s:%s" % (self.index, ip, port))
@@ -59,8 +53,8 @@ class LitNode():
     def __getattr__(self, name):
         if self.rpc is not None:
             return self.rpc.__getattr__(name)
-        else:
-            raise AssertionError("lit node not running")
+    except AssertionError as e:
+            logger.degug("lit node not running")
 
     def get_balance(self, coin_type):
         # convenience method for grabbing the node balance
