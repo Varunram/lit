@@ -11,10 +11,11 @@ import (
 
 	"golang.org/x/net/websocket"
 
-	"github.com/aarzilli/nucular"
-	"github.com/aarzilli/nucular/label"
-	"github.com/aarzilli/nucular/rect"
-	nstyle "github.com/aarzilli/nucular/style"
+	"github.com/atotto/clipboard"
+	"github.com/Varunram/nucular"
+	"github.com/Varunram/nucular/label"
+	"github.com/Varunram/nucular/rect"
+	nstyle "github.com/Varunram/nucular/style"
 )
 
 /*
@@ -82,6 +83,31 @@ func buttonFunc(w *nucular.Window) {
 		myAdrBar.Buffer = []rune(adr)
 	}
 
+	if w.Button(label.T("Add Address"), false) {
+		var err error
+		adr, err = lu.NewAddress()
+		if err != nil {
+			adr = err.Error()
+		} else {
+			fmt.Printf("Got new address %s\n", adr)
+		}
+		myAdrBar.Buffer = []rune(adr)
+	}
+
+	if w.Button(label.T("Copy Address"), false) {
+		err := clipboard.WriteAll(adr)
+		if err != nil {
+			w.Master().PopupOpen(
+				"Error", popupFlags,
+				rect.Rect{20, 100, 520, 180}, true, infoPopup)
+		} else {
+			w.Master().PopupOpen(
+				"Copied Address!", popupFlags,
+				rect.Rect{20, 100, 520, 180}, true, copyPopup)
+		}
+	}
+
+	// can't seem to push this guy to the above row..
 	if w.Button(label.T("Send"), false) {
 		responseText, err :=
 			lu.Send(string(sendAdrBar.Buffer), string(sendAmtBar.Buffer))
@@ -118,6 +144,14 @@ func buttonFunc(w *nucular.Window) {
 
 }
 
+func copyPopup(w *nucular.Window) {
+	w.Row(25).Dynamic(1)
+	w.Label(popupMsg, "LC2")
+	w.Row(25).Dynamic(2)
+	if w.Button(label.T("Ok"), false) {
+		w.Close()
+	}
+}
 func infoPopup(w *nucular.Window) {
 	w.Row(50).Dynamic(1)
 	w.Label(popupMsg, "LC")
@@ -125,9 +159,10 @@ func infoPopup(w *nucular.Window) {
 	if w.Button(label.T("OK"), false) {
 		w.Close()
 	}
-	if w.Button(label.T("Sure"), false) {
-		w.Close()
-	}
+	// not too sure what the below thing does
+	// if w.Button(label.T("Sure"), false) {
+	// 	w.Close()
+	// }
 }
 
 func main() {
@@ -159,7 +194,7 @@ func main() {
 	myAdrBar.Buffer = []rune(adr)
 
 	wnd := nucular.NewMasterWindow(0, "litnuc test", buttonFunc)
-	wnd.SetStyle(nstyle.FromTheme(nstyle.DarkTheme, 1))
+	wnd.SetStyle(nstyle.FromTheme(nstyle.DarkTheme, 2.5)) // 2.5 -> scaling
 	wnd.Main()
 
 }
