@@ -11,11 +11,11 @@ import (
 
 	"golang.org/x/net/websocket"
 
-	"github.com/atotto/clipboard"
 	"github.com/Varunram/nucular"
 	"github.com/Varunram/nucular/label"
 	"github.com/Varunram/nucular/rect"
 	nstyle "github.com/Varunram/nucular/style"
+	"github.com/atotto/clipboard"
 )
 
 /*
@@ -71,7 +71,8 @@ var popupMsg string
 
 func buttonFunc(w *nucular.Window) {
 
-	w.Row(50).Static(100, 100)
+	w.Row(50).Static(100, 100, 100, 100)
+	// add more commas to place more buttons on the same column.. nice.
 	if w.Button(label.T("New Address"), false) {
 		var err error
 		adr, err = lu.NewAddress()
@@ -83,16 +84,21 @@ func buttonFunc(w *nucular.Window) {
 		myAdrBar.Buffer = []rune(adr)
 	}
 
-	if w.Button(label.T("Add Address"), false) {
-		var err error
-		adr, err = lu.NewAddress()
-		if err != nil {
-			adr = err.Error()
-		} else {
-			fmt.Printf("Got new address %s\n", adr)
-		}
-		myAdrBar.Buffer = []rune(adr)
-	}
+	// if w.Button(label.T("Add Address"), false) {
+	// 	var err error
+	// 	adr, err = lu.NewAddress()
+	// 	if err != nil {
+	// 		adr = err.Error()
+	// 	} else {
+	// 		fmt.Printf("Got new address %s\n", adr)
+	// 	}
+	// 	myAdrBar.Buffer = []rune(adr)
+	// }
+
+	w.Row(25).Dynamic(1)
+
+	myAdrBar.Edit(w)
+	w.Row(50).Static(100)
 
 	if w.Button(label.T("Copy Address"), false) {
 		err := clipboard.WriteAll(adr)
@@ -107,7 +113,19 @@ func buttonFunc(w *nucular.Window) {
 		}
 	}
 
-	// can't seem to push this guy to the above row..
+	//	w.Label(adr, "LC")
+	// note that it doesn't work (can't change text field) when the tx.Flags
+	// and other tx.stuff is written to here, in the function.  Why? Who knows!
+	// no docs anywhere so... yeah yoloui.
+
+	w.Row(25).Static(350, 150)
+	w.Label("Send to address", "LC")
+	w.Label("Amount", "LC")
+	w.Row(25).Static(350, 150)
+	_ = sendAdrBar.Edit(w)
+	sendAmtBar.Filter = nucular.FilterDecimal
+	_ = sendAmtBar.Edit(w)
+
 	if w.Button(label.T("Send"), false) {
 		responseText, err :=
 			lu.Send(string(sendAdrBar.Buffer), string(sendAmtBar.Buffer))
@@ -125,22 +143,6 @@ func buttonFunc(w *nucular.Window) {
 				rect.Rect{20, 100, 520, 180}, true, infoPopup)
 		}
 	}
-	w.Row(25).Dynamic(1)
-
-	myAdrBar.Edit(w)
-
-	//	w.Label(adr, "LC")
-	// note that it doesn't work (can't change text field) when the tx.Flags
-	// and other tx.stuff is written to here, in the function.  Why? Who knows!
-	// no docs anywhere so... yeah yoloui.
-
-	w.Row(25).Static(350, 150)
-	w.Label("Send to address", "LC")
-	w.Label("amount", "LC")
-	w.Row(25).Static(350, 150)
-	_ = sendAdrBar.Edit(w)
-	sendAmtBar.Filter = nucular.FilterDecimal
-	_ = sendAmtBar.Edit(w)
 
 }
 
@@ -194,7 +196,7 @@ func main() {
 	myAdrBar.Buffer = []rune(adr)
 
 	wnd := nucular.NewMasterWindow(0, "litnuc test", buttonFunc)
-	wnd.SetStyle(nstyle.FromTheme(nstyle.DarkTheme, 2.5)) // 2.5 -> scaling
+	wnd.SetStyle(nstyle.FromTheme(nstyle.RedTheme, 2.5)) // 2.5 -> scaling
 	wnd.Main()
 
 }
