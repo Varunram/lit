@@ -28,14 +28,14 @@ COINS = {
         "code": 257,
         "feerate": 80,
         "class": BCNode,
-        "wallit_code": "-reg"
+        "wallit_code": "--reg"
     },
     "ltr": {
         "longname": "Litecoin_regtest",
         "code": 258,
         "feerate": 800,
         "class": LCNode,
-        "wallit_code": "-ltr"
+        "wallit_code": "--lt4"
     }
 }
 
