@@ -46,10 +46,7 @@ class LitNode():
         try:
             self.Stop()
         except AssertionError as e:
-            if e == "lit node not running":
-                logger.debug("node already stopped")
-            else:
-                raise
+            logger.debug("node already stopped")
 
     def add_rpc_connection(self, ip, port):
         logger.debug("Opening rpc connection to litnode %d: %s:%s" % (self.index, ip, port))
