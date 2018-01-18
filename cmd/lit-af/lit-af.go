@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"log"
@@ -9,8 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"golang.org/x/net/websocket"
 
 	"github.com/chzyer/readline"
 	"github.com/fatih/color"
@@ -88,18 +87,21 @@ func main() {
 	*/
 
 	//	dialString := fmt.Sprintf("%s:%d", lc.remote, lc.port)
-	origin := "http://127.0.0.1/"
-	urlString := fmt.Sprintf("ws://%s:%d/ws", lc.remote, lc.port)
-	//	url := "ws://127.0.0.1:8000/ws"
-	wsConn, err := websocket.Dial(urlString, "", origin)
+	//origin := "https://127.0.0.1/"
+	urlString := fmt.Sprintf("%s:%d", lc.remote, lc.port)
+	log.Println(urlString)
+	conf := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+	conn, err := tls.Dial("tcp", urlString, conf)
 	if err != nil {
+		log.Println("OOPS")
 		log.Fatal(err)
 	}
-	defer wsConn.Close()
+	defer conn.Close()
 
-	lc.rpccon = jsonrpc.NewClient(wsConn)
-
-	go lc.RequestAsync()
+	lc.rpccon = jsonrpc.NewClient(conn)
+	//go lc.RequestAsync() // error
 
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt:       lnutil.Prompt("lit-af") + lnutil.White("# "),

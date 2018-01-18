@@ -1,15 +1,10 @@
 package litrpc
 
 import (
-	"bytes"
-	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/rpc"
-	"net/rpc/jsonrpc"
-
-	"golang.org/x/net/websocket"
+	"strconv"
 
 	"github.com/mit-dci/lit/qln"
 )
@@ -29,25 +24,16 @@ type LitRPC struct {
 	OffButton chan bool
 }
 
-func serveWS(ws *websocket.Conn) {
-	body, err := ioutil.ReadAll(ws.Request().Body)
-	if err != nil {
-		log.Printf("Error reading body: %v", err)
-		return
-	}
-
-	log.Printf(string(body))
-	ws.Request().Body = ioutil.NopCloser(bytes.NewBuffer(body))
-
-	jsonrpc.ServeConn(ws)
-}
-
 func RPCListen(rpcl *LitRPC, port uint16) {
 
 	rpc.Register(rpcl)
-
-	listenString := fmt.Sprintf("localhost:%d", port)
-
-	http.Handle("/ws", websocket.Handler(serveWS))
-	log.Fatal(http.ListenAndServe(listenString, nil))
+	localport := ":" + strconv.Itoa(int(port))
+	log.Println("Serving conn through tls on port", port)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {})
+	server := &http.Server{
+		Addr:         localport,
+		Handler:      mux,
+	}
+	log.Fatal(server.ListenAndServeTLS("server.crt", "server.key"))
 }
