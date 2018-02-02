@@ -24,7 +24,7 @@ class LitConnection():
         self.ws = websocket.WebSocket()
         for _ in range(50):
             try:
-                self.ws.connect("ws://%s:%s/ws" % (self.ip, self.port))
+                self.ws.connect("wss://%s:%s/ws" % (self.ip, self.port))
             except ConnectionRefusedError:
                 # lit is not ready to accept connections yet
                 time.sleep(0.25)
