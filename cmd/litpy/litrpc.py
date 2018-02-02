@@ -8,6 +8,7 @@ import json
 import logging
 import random
 import time
+import ssl
 import websocket  # `pip install websocket-client`
 
 logger = logging.getLogger("litrpc")
