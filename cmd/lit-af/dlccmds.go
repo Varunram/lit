@@ -198,7 +198,7 @@ var setContractRPointCommand = &Command{
 
 var SetContractParamsCommand = &Command{
 	Format: fmt.Sprintf("%s%s\n", lnutil.White("dlc contract setparams"),
-		lnutil.ReqColor("cid", "cointype", "ourAmount", "theirAmount", "valueAllForUs", "valueAllForThem", "time")),
+		lnutil.ReqColor("cid", "cointype", "ourAmount", "theirAmount", "valueAllForUs", "valueAllForThem", "time", "oracleId")),
 	Description: fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n",
 		"Sets the various parameters of a draft contract: " +
 		"The cointype, the amounts funded by us and the counterparty, " +
