@@ -1,0 +1,493 @@
+diff --git a/cmd/lit-af/dlccmds.go b/cmd/lit-af/dlccmds.go
+index 7a51ee7..0417336 100644
+--- a/cmd/lit-af/dlccmds.go
++++ b/cmd/lit-af/dlccmds.go
+@@ -84,7 +84,7 @@ var contractCommand = &Command{
+ 	Format: fmt.Sprintf("%s%s%s\n", lnutil.White("dlc contract"),
+ 		lnutil.ReqColor("subcommand"), lnutil.OptColor("parameters...")),
+ 	Description: fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n%s\n"+
+-		"%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n",
++		"%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n",
+ 		"Command for managing contracts. Subcommand can be one of:",
+ 		fmt.Sprintf("%-20s %s",
+ 			lnutil.White("new"),
+@@ -108,11 +108,8 @@ var contractCommand = &Command{
+ 			lnutil.White("setrpoint"),
+ 			"Sets the R point manually"),
+ 		fmt.Sprintf("%-20s %s",
+-			lnutil.White("setfunding"),
+-			"Sets the funding parameters of a contract"),
+-		fmt.Sprintf("%-20s %s",
+-			lnutil.White("setdivision"),
+-			"Sets the settlement division of a contract"),
++			lnutil.White("setparams"),
++			"Sets the funding and division parameters of a contract"),
+ 		fmt.Sprintf("%-20s %s",
+ 			lnutil.White("setcointype"),
+ 			"Sets the cointype of a contract"),
+@@ -157,7 +154,7 @@ var viewContractCommand = &Command{
+ }
+ 
+ var viewContractPayoutCommand = &Command{
+-	Format: fmt.Sprintf("%s%s%s%s\n", lnutil.White("dlc contract viewpayout"),
++	Format: fmt.Sprintf("%s%s%s%s%s\n", lnutil.White("dlc contract viewpayout"),
+ 		lnutil.ReqColor("id"), lnutil.ReqColor("start"),
+ 		lnutil.ReqColor("end"), lnutil.ReqColor("increment")),
+ 	Description: fmt.Sprintf("%s\n%s\n%s\n%s\n",
+@@ -237,11 +234,13 @@ var setContractSettlementTimeCommand = &Command{
+ 	),
+ 	ShortDescription: "Sets the settlement time for the contract\n",
+ }
+-var setContractFundingCommand = &Command{
+-	Format: fmt.Sprintf("%s%s\n", lnutil.White("dlc contract setfunding"),
+-		lnutil.ReqColor("cid", "ourAmount", "theirAmount")),
+-	Description: fmt.Sprintf("%s\n%s\n%s\n%s\n",
+-		"Sets the amounts both parties in the contract will fund",
++var SetContractFundingAndDivisionCommand = &Command{
++	Format: fmt.Sprintf("%s%s\n", lnutil.White("dlc contract setparams"),
++		lnutil.ReqColor("cid", "ourAmount", "theirAmount", "valueAllForUs", "valueAllForThem")),
++	Description: fmt.Sprintf("%s\n%s\n%s\n%s\n%s\n%s\n",
++		"Sets the amounts both parties in the contract will fund and"+
++			"the values of the oracle data that will result in the full"+
++			"contract funds being paid to either peer",
+ 		fmt.Sprintf("%-10s %s",
+ 			lnutil.White("cid"),
+ 			"The ID of the contract"),
+@@ -251,18 +250,6 @@ var setContractFundingCommand = &Command{
+ 		fmt.Sprintf("%-10s %s",
+ 			lnutil.White("theirAmount"),
+ 			"The amount our peer will fund"),
+-	),
+-	ShortDescription: "Sets the amount both parties will fund\n",
+-}
+-var setContractDivisionCommand = &Command{
+-	Format: fmt.Sprintf("%s%s\n", lnutil.White("dlc contract setdivision"),
+-		lnutil.ReqColor("cid", "valueAllForUs", "valueAllForThem")),
+-	Description: fmt.Sprintf("%s\n%s\n%s\n%s\n",
+-		"Sets the values of the oracle data that will result in the full"+
+-			"contract funds being paid to either peer",
+-		fmt.Sprintf("%-10s %s",
+-			lnutil.White("cid"),
+-			"The ID of the contract"),
+ 		fmt.Sprintf("%-10s %s",
+ 			lnutil.White("valueAllForUs"),
+ 			"The outcome with which we will be entitled to the full"+
+@@ -272,7 +259,8 @@ var setContractDivisionCommand = &Command{
+ 			"The outcome with which our peer will be entitled to the full"+
+ 				" contract value"),
+ 	),
+-	ShortDescription: "Sets the edge values for dividing the funds\n",
++	ShortDescription: "Sets the amount both parties will fund and" +
++		"the edge values for dividing the funds\n",
+ }
+ var setContractCoinTypeCommand = &Command{
+ 	Format: fmt.Sprintf("%s%s\n", lnutil.White("dlc contract setcointype"),
+@@ -343,7 +331,7 @@ var settleContractCommand = &Command{
+ }
+ 
+ func (lc *litAfClient) Dlc(textArgs []string) error {
+-	if len(textArgs) > 0 && textArgs[0] == "-h" {
++	if len(textArgs) > 0 && textArgs[0] == "help" {
+ 		fmt.Fprintf(color.Output, dlcCommand.Format)
+ 		fmt.Fprintf(color.Output, dlcCommand.Description)
+ 		return nil
+@@ -359,7 +347,7 @@ func (lc *litAfClient) Dlc(textArgs []string) error {
+ }
+ 
+ func (lc *litAfClient) DlcOracle(textArgs []string) error {
+-	if len(textArgs) > 0 && textArgs[0] == "-h" {
++	if len(textArgs) > 0 && textArgs[0] == "help" {
+ 		fmt.Fprintf(color.Output, oracleCommand.Format)
+ 		fmt.Fprintf(color.Output, oracleCommand.Description)
+ 		return nil
+@@ -400,7 +388,7 @@ func (lc *litAfClient) DlcListOracles(textArgs []string) error {
+ }
+ 
+ func (lc *litAfClient) DlcImportOracle(textArgs []string) error {
+-	if len(textArgs) > 0 && textArgs[0] == "-h" {
++	if len(textArgs) > 0 && textArgs[0] == "help" {
+ 		fmt.Fprintf(color.Output, importOracleCommand.Format)
+ 		fmt.Fprintf(color.Output, importOracleCommand.Description)
+ 		return nil
+@@ -427,7 +415,7 @@ func (lc *litAfClient) DlcImportOracle(textArgs []string) error {
+ }
+ 
+ func (lc *litAfClient) DlcAddOracle(textArgs []string) error {
+-	if len(textArgs) > 0 && textArgs[0] == "-h" {
++	if len(textArgs) > 0 && textArgs[0] == "help" {
+ 		fmt.Fprintf(color.Output, addOracleCommand.Format)
+ 		fmt.Fprintf(color.Output, addOracleCommand.Description)
+ 		return nil
+@@ -454,7 +442,7 @@ func (lc *litAfClient) DlcAddOracle(textArgs []string) error {
+ }
+ 
+ func (lc *litAfClient) DlcContract(textArgs []string) error {
+-	if len(textArgs) > 0 && textArgs[0] == "-h" {
++	if len(textArgs) > 0 && textArgs[0] == "help" {
+ 		fmt.Fprintf(color.Output, contractCommand.Format)
+ 		fmt.Fprintf(color.Output, contractCommand.Description)
+ 		return nil
+@@ -492,12 +480,8 @@ func (lc *litAfClient) DlcContract(textArgs []string) error {
+ 		return lc.DlcSetContractSettlementTime(textArgs[1:])
+ 	}
+ 
+-	if len(textArgs) > 0 && textArgs[0] == "setfunding" {
+-		return lc.DlcSetContractFunding(textArgs[1:])
+-	}
+-
+-	if len(textArgs) > 0 && textArgs[0] == "setdivision" {
+-		return lc.DlcSetContractDivision(textArgs[1:])
++	if len(textArgs) > 0 && textArgs[0] == "setparams" {
++		return lc.DlcSetContractFundingAndDivision(textArgs[1:])
+ 	}
+ 
+ 	if len(textArgs) > 0 && textArgs[0] == "setcointype" {
+@@ -557,7 +541,7 @@ func (lc *litAfClient) DlcNewContract(textArgs []string) error {
+ }
+ 
+ func (lc *litAfClient) DlcViewContract(textArgs []string) error {
+-	if len(textArgs) > 0 && textArgs[0] == "-h" {
++	if len(textArgs) > 0 && textArgs[0] == "help" {
+ 		fmt.Fprintf(color.Output, viewContractCommand.Format)
+ 		fmt.Fprintf(color.Output, viewContractCommand.Description)
+ 		return nil
+@@ -586,7 +570,7 @@ func (lc *litAfClient) DlcViewContract(textArgs []string) error {
+ }
+ 
+ func (lc *litAfClient) DlcViewContractPayout(textArgs []string) error {
+-	if len(textArgs) > 0 && textArgs[0] == "-h" {
++	if len(textArgs) > 0 && textArgs[0] == "help" {
+ 		fmt.Fprintf(color.Output, viewContractPayoutCommand.Format)
+ 		fmt.Fprintf(color.Output, viewContractPayoutCommand.Description)
+ 		return nil
+@@ -628,7 +612,7 @@ func (lc *litAfClient) DlcViewContractPayout(textArgs []string) error {
+ }
+ 
+ func (lc *litAfClient) DlcSetContractOracle(textArgs []string) error {
+-	if len(textArgs) > 0 && textArgs[0] == "-h" {
++	if len(textArgs) > 0 && textArgs[0] == "help" {
+ 		fmt.Fprintf(color.Output, setContractOracleCommand.Format)
+ 		fmt.Fprintf(color.Output, setContractOracleCommand.Description)
+ 		return nil
+@@ -663,7 +647,7 @@ func (lc *litAfClient) DlcSetContractOracle(textArgs []string) error {
+ }
+ 
+ func (lc *litAfClient) DlcSetContractDatafeed(textArgs []string) error {
+-	if len(textArgs) > 0 && textArgs[0] == "-h" {
++	if len(textArgs) > 0 && textArgs[0] == "help" {
+ 		fmt.Fprintf(color.Output, setContractDatafeedCommand.Format)
+ 		fmt.Fprintf(color.Output, setContractDatafeedCommand.Description)
+ 		return nil
+@@ -698,7 +682,7 @@ func (lc *litAfClient) DlcSetContractDatafeed(textArgs []string) error {
+ }
+ 
+ func (lc *litAfClient) DlcSetContractRPoint(textArgs []string) error {
+-	if len(textArgs) > 0 && textArgs[0] == "-h" {
++	if len(textArgs) > 0 && textArgs[0] == "help" {
+ 		fmt.Fprintf(color.Output, setContractRPointCommand.Format)
+ 		fmt.Fprintf(color.Output, setContractRPointCommand.Description)
+ 		return nil
+@@ -733,7 +717,7 @@ func (lc *litAfClient) DlcSetContractRPoint(textArgs []string) error {
+ }
+ 
+ func (lc *litAfClient) DlcSetContractSettlementTime(textArgs []string) error {
+-	if len(textArgs) > 0 && textArgs[0] == "-h" {
++	if len(textArgs) > 0 && textArgs[0] == "help" {
+ 		fmt.Fprintf(color.Output, setContractSettlementTimeCommand.Format)
+ 		fmt.Fprintf(color.Output, setContractSettlementTimeCommand.Description)
+ 		return nil
+@@ -767,48 +751,8 @@ func (lc *litAfClient) DlcSetContractSettlementTime(textArgs []string) error {
+ 	return nil
+ }
+ 
+-func (lc *litAfClient) DlcSetContractFunding(textArgs []string) error {
+-	if len(textArgs) > 0 && textArgs[0] == "-h" {
+-		fmt.Fprintf(color.Output, setContractFundingCommand.Format)
+-		fmt.Fprintf(color.Output, setContractFundingCommand.Description)
+-		return nil
+-	}
+-
+-	if len(textArgs) < 3 {
+-		return fmt.Errorf(setContractFundingCommand.Format)
+-	}
+-
+-	args := new(litrpc.SetContractFundingArgs)
+-	reply := new(litrpc.SetContractFundingReply)
+-
+-	cIdx, err := strconv.ParseUint(textArgs[0], 10, 64)
+-	if err != nil {
+-		return err
+-	}
+-	ourAmount, err := strconv.ParseInt(textArgs[1], 10, 64)
+-	if err != nil {
+-		return err
+-	}
+-	theirAmount, err := strconv.ParseInt(textArgs[2], 10, 64)
+-	if err != nil {
+-		return err
+-	}
+-	args.CIdx = cIdx
+-	args.OurAmount = ourAmount
+-	args.TheirAmount = theirAmount
+-
+-	err = lc.rpccon.Call("LitRPC.SetContractFunding", args, reply)
+-	if err != nil {
+-		return err
+-	}
+-
+-	fmt.Fprint(color.Output, "Funding set succesfully\n")
+-
+-	return nil
+-}
+-
+ func (lc *litAfClient) DlcSetContractCoinType(textArgs []string) error {
+-	if len(textArgs) > 0 && textArgs[0] == "-h" {
++	if len(textArgs) > 0 && textArgs[0] == "help" {
+ 		fmt.Fprintf(color.Output, setContractCoinTypeCommand.Format)
+ 		fmt.Fprintf(color.Output, setContractCoinTypeCommand.Description)
+ 		return nil
+@@ -843,48 +787,59 @@ func (lc *litAfClient) DlcSetContractCoinType(textArgs []string) error {
+ 	return nil
+ }
+ 
+-func (lc *litAfClient) DlcSetContractDivision(textArgs []string) error {
+-	if len(textArgs) > 0 && textArgs[0] == "-h" {
+-		fmt.Fprintf(color.Output, setContractDivisionCommand.Format)
+-		fmt.Fprintf(color.Output, setContractDivisionCommand.Description)
++func (lc *litAfClient) DlcSetContractFundingAndDivision(textArgs []string) error {
++	if len(textArgs) > 0 && textArgs[0] == "help" {
++		fmt.Fprintf(color.Output, SetContractFundingAndDivisionCommand.Format)
++		fmt.Fprintf(color.Output, SetContractFundingAndDivisionCommand.Description)
+ 		return nil
+ 	}
+ 
+-	if len(textArgs) < 3 {
+-		return fmt.Errorf(setContractDivisionCommand.Format)
++	if len(textArgs) < 5 {
++		return fmt.Errorf(SetContractFundingAndDivisionCommand.Format)
+ 	}
+ 
+-	args := new(litrpc.SetContractDivisionArgs)
+-	reply := new(litrpc.SetContractDivisionReply)
++	args := new(litrpc.SetContractFundingAndDivisionArgs)
++	reply := new(litrpc.SetContractFundingAndDivisionReply)
+ 
+ 	cIdx, err := strconv.ParseUint(textArgs[0], 10, 64)
+ 	if err != nil {
+ 		return err
+ 	}
+-	fullyOurs, err := strconv.ParseInt(textArgs[1], 10, 64)
++	ourAmount, err := strconv.ParseInt(textArgs[1], 10, 64)
++	if err != nil {
++		return err
++	}
++	theirAmount, err := strconv.ParseInt(textArgs[2], 10, 64)
+ 	if err != nil {
+ 		return err
+ 	}
+-	fullyTheirs, err := strconv.ParseInt(textArgs[2], 10, 64)
++	fullyOurs, err := strconv.ParseInt(textArgs[3], 10, 64)
+ 	if err != nil {
+ 		return err
+ 	}
++	fullyTheirs, err := strconv.ParseInt(textArgs[4], 10, 64)
++	if err != nil {
++		return err
++	}
++
+ 	args.CIdx = cIdx
++	args.OurAmount = ourAmount
++	args.TheirAmount = theirAmount
+ 	args.ValueFullyOurs = fullyOurs
+ 	args.ValueFullyTheirs = fullyTheirs
+ 
+-	err = lc.rpccon.Call("LitRPC.SetContractDivision", args, reply)
++	err = lc.rpccon.Call("LitRPC.SetContractFundingAndDivision", args, reply)
+ 	if err != nil {
+ 		return err
+ 	}
+ 
+-	fmt.Fprint(color.Output, "Funding set succesfully\n")
++	fmt.Fprint(color.Output, "Funding And Division set succesfully\n")
+ 
+ 	return nil
+ }
+ 
+ func (lc *litAfClient) DlcOfferContract(textArgs []string) error {
+-	if len(textArgs) > 0 && textArgs[0] == "-h" {
++	if len(textArgs) > 0 && textArgs[0] == "help" {
+ 		fmt.Fprintf(color.Output, offerContractCommand.Format)
+ 		fmt.Fprintf(color.Output, offerContractCommand.Description)
+ 		return nil
+@@ -920,7 +875,7 @@ func (lc *litAfClient) DlcOfferContract(textArgs []string) error {
+ }
+ 
+ func (lc *litAfClient) DlcDeclineContract(textArgs []string) error {
+-	if len(textArgs) > 0 && textArgs[0] == "-h" {
++	if len(textArgs) > 0 && textArgs[0] == "help" {
+ 		fmt.Fprintf(color.Output, declineContractCommand.Format)
+ 		fmt.Fprintf(color.Output, declineContractCommand.Description)
+ 		return nil
+@@ -951,7 +906,7 @@ func (lc *litAfClient) DlcDeclineContract(textArgs []string) error {
+ }
+ 
+ func (lc *litAfClient) DlcAcceptContract(textArgs []string) error {
+-	if len(textArgs) > 0 && textArgs[0] == "-h" {
++	if len(textArgs) > 0 && textArgs[0] == "help" {
+ 		fmt.Fprintf(color.Output, acceptContractCommand.Format)
+ 		fmt.Fprintf(color.Output, acceptContractCommand.Description)
+ 		return nil
+@@ -982,7 +937,7 @@ func (lc *litAfClient) DlcAcceptContract(textArgs []string) error {
+ }
+ 
+ func (lc *litAfClient) DlcSettleContract(textArgs []string) error {
+-	if len(textArgs) > 0 && textArgs[0] == "-h" {
++	if len(textArgs) > 0 && textArgs[0] == "help" {
+ 		fmt.Fprintf(color.Output, settleContractCommand.Format)
+ 		fmt.Fprintf(color.Output, settleContractCommand.Description)
+ 		return nil
+diff --git a/dlc/contract.go b/dlc/contract.go
+index 28a2eed..e6e23c5 100644
+--- a/dlc/contract.go
++++ b/dlc/contract.go
+@@ -135,9 +135,15 @@ func (mgr *DlcManager) SetContractRPoint(cIdx uint64, rPoint [33]byte) error {
+ 	return nil
+ }
+ 
+-// SetContractFunding sets the funding to the contract. It will specify how much
+-// we (the offering party) are funding, as well as
+-func (mgr *DlcManager) SetContractFunding(cIdx uint64, our, their int64) error {
++// SetContractFundingAndDivision sets the funding and division parameters 
++// to the contract. It will specify how much
++// we (the offering party) are willing to fund, as well as what they are.
++// It also sets the division of the contract settlement ie if the
++// oraclized value is valueAllOurs, then the entire value of the contract is
++// payable to us. If the oraclized value is valueAllTheirs, then the entire
++// value is paid to our peer. Between those, the value is divided linearly.
++
++func (mgr *DlcManager) SetContractFundingAndDivision(cIdx uint64, our, their, valueAllOurs, valueAllTheirs int64) error {
+ 	c, err := mgr.LoadContract(cIdx)
+ 	if err != nil {
+ 		return err
+@@ -154,27 +160,6 @@ func (mgr *DlcManager) SetContractFunding(cIdx uint64, our, their int64) error {
+ 	// If the funding changes, the division needs to be re-set.
+ 	c.Division = nil
+ 
+-	mgr.SaveContract(c)
+-
+-	return nil
+-}
+-
+-// SetContractDivision sets the division of the contract settlement. If the
+-// oraclized value is valueAllOurs, then the entire value of the contract is
+-// payable to us. If the oraclized value is valueAllTheirs, then the entire
+-// value is paid to our peer. Between those, the value is divided linearly.
+-func (mgr *DlcManager) SetContractDivision(cIdx uint64,
+-	valueAllOurs, valueAllTheirs int64) error {
+-	c, err := mgr.LoadContract(cIdx)
+-	if err != nil {
+-		return err
+-	}
+-
+-	if c.Status != lnutil.ContractStatusDraft {
+-		return fmt.Errorf("You cannot change or set the division unless" +
+-			" the contract is in Draft state")
+-	}
+-
+ 	rangeMin := valueAllTheirs - (valueAllOurs - valueAllTheirs)
+ 	rangeMax := valueAllOurs + (valueAllOurs - valueAllTheirs)
+ 	oursHighest := true
+@@ -222,7 +207,6 @@ func (mgr *DlcManager) SetContractDivision(cIdx uint64,
+ 
+ 	}
+ 	mgr.SaveContract(c)
+-
+ 	return nil
+ }
+ 
+diff --git a/litrpc/dlccmds.go b/litrpc/dlccmds.go
+index ce8b098..82aa8d8 100644
+--- a/litrpc/dlccmds.go
++++ b/litrpc/dlccmds.go
+@@ -329,39 +329,6 @@ func (r *LitRPC) SetContractSettlementTime(args SetContractSettlementTimeArgs,
+ 	return nil
+ }
+ 
+-type SetContractFundingArgs struct {
+-	CIdx        uint64
+-	OurAmount   int64
+-	TheirAmount int64
+-}
+-
+-type SetContractFundingReply struct {
+-	Success bool
+-}
+-
+-// SetContractFunding sets the division in funding the channel. The arguments
+-// decide how much we're funding and how much we expect the peer we offer the
+-// contract to to fund
+-func (r *LitRPC) SetContractFunding(args SetContractFundingArgs,
+-	reply *SetContractFundingReply) error {
+-	var err error
+-
+-	err = r.Node.DlcManager.SetContractFunding(args.CIdx,
+-		args.OurAmount, args.TheirAmount)
+-	if err != nil {
+-		return err
+-	}
+-
+-	reply.Success = true
+-	return nil
+-}
+-
+-type SetContractDivisionArgs struct {
+-	CIdx             uint64
+-	ValueFullyOurs   int64
+-	ValueFullyTheirs int64
+-}
+-
+ type SetContractFwdArgs struct {
+ 	CIdx uint64
+ 
+@@ -371,24 +338,35 @@ type SetContractFwdArgs struct {
+ 	FundAmt       int64
+ }
+ 
+-type SetContractDivisionReply struct {
++type SetContractFundingAndDivisionArgs struct {
++	CIdx             uint64
++	OurAmount        int64
++	TheirAmount      int64
++	ValueFullyOurs   int64
++	ValueFullyTheirs int64
++}
++
++type SetContractFundingAndDivisionReply struct {
+ 	Success bool
+ }
+ 
+-// SetContractDivision sets how the contract is settled. The parameters indicate
++// SetContractFundingAndDivision sets the arguments which decide how much we're
++// funding and how much we expect the peer we offer the contract to to fund.
++// It also sets how the contract is settled. The parameters indicate
+ // at what value the full contract funds are ours, and at what value they are
+ // full funds are for our peer. Between those values, the contract will divide
+ // the contract funds linearly
+-func (r *LitRPC) SetContractDivision(args SetContractDivisionArgs,
+-	reply *SetContractDivisionReply) error {
++
++func (r *LitRPC) SetContractFundingAndDivision(args SetContractFundingAndDivisionArgs,
++	reply *SetContractFundingAndDivisionReply) error {
+ 	var err error
+ 
+-	err = r.Node.DlcManager.SetContractDivision(args.CIdx,
++	err = r.Node.DlcManager.SetContractFundingAndDivision(args.CIdx,
++		args.OurAmount, args.TheirAmount,
+ 		args.ValueFullyOurs, args.ValueFullyTheirs)
+ 	if err != nil {
+ 		return err
+ 	}
+-
+ 	reply.Success = true
+ 	return nil
+ }

@@ -1,0 +1,31 @@
+con ln1t0vrfas7f8pa0n06c4ns6pcym6af08g3yq9alz@10.211.55.203con ln1t0vrfas7f8pa0n06c4ns6pcym6af08g3yq9alz@10.211.55.203package litrpc
+
+viewpayout in the case of no tx abruptly fails:
+
+Varunrams-MacBook-Pro:lit-af varunramg$ ./lit-af
+lit-af# dlc contract viewpayout 1 0 10
+entered command: dlc contract viewpayout 1 0 10
+dlc error: dlc contract viewpayout <id> <start> <end> <increment>
+
+lit-af# dlc contract viewpayout 1 0 10 1
+entered command: dlc contract viewpayout 1 0 10 1
+Payout division:
+
+Oracle value         | Our payout           | Their payout
+------------------------------------------------------------------
+RequestAsync error read tcp 127.0.0.1:62901->127.0.0.1:8001: use of closed network connection
+panic: runtime error: index out of range
+
+goroutine 1 [running]:
+main.PrintPayout(0xc42014a000, 0x0, 0xa, 0x1)
+	/Users/varunramg/go/src/github.com/mit-dci/lit/cmd/lit-af/dlccmds.go:964 +0x41c
+main.(*litAfClient).DlcViewContractPayout(0xc42009d290, 0xc420138030, 0x4, 0x4, 0xc4205a4058, 0xc4205a4060)
+	/Users/varunramg/go/src/github.com/mit-dci/lit/cmd/lit-af/dlccmds.go:517 +0x290
+main.(*litAfClient).DlcContract(0xc42009d290, 0xc420138020, 0x5, 0x5, 0xc4200b0050, 0x0)
+	/Users/varunramg/go/src/github.com/mit-dci/lit/cmd/lit-af/dlccmds.go:367 +0x8e8
+main.(*litAfClient).Dlc(0xc42009d290, 0xc420138010, 0x6, 0x6, 0x0, 0x10c2251)
+	/Users/varunramg/go/src/github.com/mit-dci/lit/cmd/lit-af/dlccmds.go:250 +0x134
+main.(*litAfClient).Shellparse(0xc42009d290, 0xc420138000, 0x7, 0x7, 0xc42012df08, 0x1)
+	/Users/varunramg/go/src/github.com/mit-dci/lit/cmd/lit-af/shell.go:124 +0xaa0
+main.main()
+	/Users/varunramg/go/src/github.com/mit-dci/lit/cmd/lit-af/lit-af.go:130 +0x6b6
