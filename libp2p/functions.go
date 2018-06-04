@@ -4,16 +4,20 @@ import (
 	"bufio"
 	"context"
 	"crypto/rand"
+	// "encoding/json"
 	"fmt"
 	"io"
 	"log"
 	mrand "math/rand"
 	"reflect"
-	"time"
-	"encoding/json"
 	"sync"
+	"time"
+	// "bytes"
+	"os"
+	"strings"
+	"strconv"
 
-//golog "github.com/ipfs/go-log"
+	//golog "github.com/ipfs/go-log"
 	libp2p "github.com/libp2p/go-libp2p"
 	crypto "github.com/libp2p/go-libp2p/gxlibs/github.com/libp2p/go-libp2p-crypto"
 	host "github.com/libp2p/go-libp2p/gxlibs/github.com/libp2p/go-libp2p-host"
@@ -21,11 +25,10 @@ import (
 	ma "github.com/libp2p/go-libp2p/gxlibs/github.com/multiformats/go-multiaddr"
 )
 
-
 var mutex = &sync.Mutex{}
 // makeBasicHost creates a LibP2P host with a random peer ID listening on the
 // given multiaddress. Use secio.
-func MakeBasicHost(listenPort int, randseed int64) (host.Host, error) {
+func MakeBasicHost(listenPort uint16, randseed int64) (host.Host, error) {
 
 	// If the seed is zero, use real cryptographic randomness. Otherwise, use a
 	// deterministic randomness source to make generated keys stay the same
@@ -46,6 +49,7 @@ func MakeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 
 	opts := []libp2p.Option{
 		libp2p.ListenAddrStrings(fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", listenPort)),
+		// equivalent of listenString in listener.go
 		libp2p.Identity(priv),
 	}
 
@@ -61,7 +65,7 @@ func MakeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 	// by encapsulating both addresses:
 	addr := basicHost.Addrs()[0]
 	fullAddr := addr.Encapsulate(hostAddr)
-	log.Printf("I am %s\n", fullAddr)
+	log.Printf("serving libp2p connection on %s\n", fullAddr)
 	return basicHost, nil
 }
 
@@ -92,23 +96,8 @@ func readData(rw *bufio.ReadWriter) {
 		}
 		if str != "\n" {
 
-			chain := make([]Block, 0)
-			if err := json.Unmarshal([]byte(str), &chain); err != nil {
-				log.Fatal(err)
-			}
-
 			mutex.Lock()
-			if len(chain) > len(Blockchain) {
-				Blockchain = chain
-				bytes, err := json.MarshalIndent(Blockchain, "", "  ")
-				if err != nil {
-
-					log.Fatal(err)
-				}
-				// Green console color: 	\x1b[32m
-				// Reset console color: 	\x1b[0m
-				fmt.Printf("\x1b[32m%s\x1b[0m> ", string(bytes))
-			}
+			// do your stuff here, don't bother too much
 			mutex.Unlock()
 		}
 	}
@@ -120,14 +109,10 @@ func writeData(rw *bufio.ReadWriter) {
 		for {
 			time.Sleep(5 * time.Second)
 			mutex.Lock()
-			bytes, err := json.Marshal(Blockchain)
-			if err != nil {
-				log.Println(err)
-			}
+			// do your stuff
 			mutex.Unlock()
-
 			mutex.Lock()
-			rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
+			//rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
 			rw.Flush()
 			mutex.Unlock()
 
@@ -144,28 +129,15 @@ func writeData(rw *bufio.ReadWriter) {
 		}
 
 		sendData = strings.Replace(sendData, "\n", "", -1)
-		bpm, err := strconv.Atoi(sendData)
+		_, err = strconv.Atoi(sendData)
+		// bm, err := srtconv.Atoi(sendData)
 		if err != nil {
 			log.Fatal(err)
 		}
-		newBlock := generateBlock(Blockchain[len(Blockchain)-1], bpm)
-
-		if isBlockValid(newBlock, Blockchain[len(Blockchain)-1]) {
-			mutex.Lock()
-			Blockchain = append(Blockchain, newBlock)
-			mutex.Unlock()
-		}
-
-		bytes, err := json.Marshal(Blockchain)
-		if err != nil {
-			log.Println(err)
-		}
-
-		spew.Dump(Blockchain)
 
 		mutex.Lock()
-		rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
 		rw.Flush()
+		// do your stuff here
 		mutex.Unlock()
 	}
 

@@ -1,3 +1,5 @@
+package litrpc
+
 import (
 	"fmt"
 	"strconv"
