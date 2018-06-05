@@ -48,13 +48,14 @@ func RPCListen(rpcl *LitRPC, host string, port uint16) {
 
 	listenString := fmt.Sprintf("%s:%d", host, port)
 
-	http.Handle("/ws", websocket.Handler(serveWS))
 	ha, err := libp2p.MakeBasicHost(port, 0)
-	// don't pass a random seed, maybe ask the user to provide this in the future
+	// don't pass a random seed and don't ask the user to provide this
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("The port is:", port)
 	ha.SetStreamHandler("/p2p/1.0.0", libp2p.HandleStream)
+	select {} // hang forever
+	http.Handle("/ws", websocket.Handler(serveWS))
 	log.Fatal(http.ListenAndServe(listenString, nil))
 }

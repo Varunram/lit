@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"bufio"
+	"context"
 	"log"
 	"net/rpc"
 	"net/rpc/jsonrpc"
@@ -15,6 +17,11 @@ import (
 	"github.com/chzyer/readline"
 	"github.com/fatih/color"
 	"github.com/mit-dci/lit/lnutil"
+	"github.com/mit-dci/lit/libp2p"
+
+	ma "github.com/libp2p/go-libp2p/gxlibs/github.com/multiformats/go-multiaddr"
+	peer "github.com/libp2p/go-libp2p/gxlibs/github.com/libp2p/go-libp2p-peer"
+	pstore "github.com/libp2p/go-libp2p-peerstore"
 )
 
 /*
@@ -91,6 +98,61 @@ func main() {
 	origin := "http://127.0.0.1/"
 	urlString := fmt.Sprintf("ws://%s:%d/ws", lc.remote, lc.port)
 	//	url := "ws://127.0.0.1:8000/ws"
+
+	ha, err := libp2p.MakeBasicHost(lc.port, 0)
+	// don't pass a random seed and don't ask the user to provide this
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ha.SetStreamHandler("/p2p/1.0.0", libp2p.HandleStream)
+
+	// The following code extracts target's peer ID from the
+	// given multiaddress
+
+	// force the user to input this, no other way?
+	ipfsaddr, err := ma.NewMultiaddr("/ip4/127.0.0.1/tcp/8001/ipfs/QmaGQjrDVSVnSnnhuW55kr6USuQVK8LApYsNjAgoAAk5k9")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	pid, err := ipfsaddr.ValueForProtocol(ma.P_IPFS)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	peerid, err := peer.IDB58Decode(pid)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// Decapsulate the /ipfs/<peerID> part from the target
+	// /ip4/<a.b.c.d>/ipfs/<peer> becomes /ip4/<a.b.c.d>
+	targetPeerAddr, _ := ma.NewMultiaddr(
+		fmt.Sprintf("/ipfs/%s", peer.IDB58Encode(peerid)))
+	targetAddr := ipfsaddr.Decapsulate(targetPeerAddr)
+
+	// We have a peer ID and a targetAddr so we add it to the peerstore
+	// so LibP2P knows how to contact it
+	ha.Peerstore().AddAddr(peerid, targetAddr, pstore.PermanentAddrTTL)
+
+	log.Println("opening stream")
+	// make a new stream from host B to host A
+	// it should be handled on host A by the handler we set above because
+	// we use the same /p2p/1.0.0 protocol
+	s, err := ha.NewStream(context.Background(), peerid, "/p2p/1.0.0")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	// Create a buffered stream so that read and writes are non blocking.
+	rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
+
+	// Create a thread to read and write data.
+	go libp2p.WriteData(rw)
+	go libp2p.ReadData(rw)
+
+	select {} // hang forever
+
 	wsConn, err := websocket.Dial(urlString, "", origin)
 	if err != nil {
 		log.Fatal(err)

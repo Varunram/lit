@@ -77,13 +77,13 @@ func HandleStream(s net.Stream) {
 	rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
 	log.Println(reflect.TypeOf(rw))
 
-	go readData(rw)
-	go writeData(rw)
+	go ReadData(rw)
+	go WriteData(rw)
 
 	// stream 's' will stay open until you close it (or the other side closes it).
 }
 
-func readData(rw *bufio.ReadWriter) {
+func ReadData(rw *bufio.ReadWriter) {
 
 	for {
 		str, err := rw.ReadString('\n')
@@ -103,7 +103,7 @@ func readData(rw *bufio.ReadWriter) {
 	}
 }
 
-func writeData(rw *bufio.ReadWriter) {
+func WriteData(rw *bufio.ReadWriter) {
 
 	go func() {
 		for {
