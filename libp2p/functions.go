@@ -11,18 +11,13 @@ import (
 	mrand "math/rand"
 	"reflect"
 	"sync"
-	"time"
-	// "bytes"
-	"os"
-	"strings"
-	"strconv"
 
 	//golog "github.com/ipfs/go-log"
 	libp2p "github.com/libp2p/go-libp2p"
-	crypto "github.com/libp2p/go-libp2p/gxlibs/github.com/libp2p/go-libp2p-crypto"
-	host "github.com/libp2p/go-libp2p/gxlibs/github.com/libp2p/go-libp2p-host"
-	net "github.com/libp2p/go-libp2p/gxlibs/github.com/libp2p/go-libp2p-net"
-	ma "github.com/libp2p/go-libp2p/gxlibs/github.com/multiformats/go-multiaddr"
+	crypto "github.com/libp2p/go-libp2p-crypto"
+	host "github.com/libp2p/go-libp2p-host"
+	net "github.com/libp2p/go-libp2p-net"
+	ma "github.com/multiformats/go-multiaddr"
 )
 
 var mutex = &sync.Mutex{}
@@ -77,68 +72,5 @@ func HandleStream(s net.Stream) {
 	rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
 	log.Println(reflect.TypeOf(rw))
 
-	go ReadData(rw)
-	go WriteData(rw)
-
 	// stream 's' will stay open until you close it (or the other side closes it).
-}
-
-func ReadData(rw *bufio.ReadWriter) {
-
-	for {
-		str, err := rw.ReadString('\n')
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if str == "" {
-			return
-		}
-		if str != "\n" {
-
-			mutex.Lock()
-			// do your stuff here, don't bother too much
-			mutex.Unlock()
-		}
-	}
-}
-
-func WriteData(rw *bufio.ReadWriter) {
-
-	go func() {
-		for {
-			time.Sleep(5 * time.Second)
-			mutex.Lock()
-			// do your stuff
-			mutex.Unlock()
-			mutex.Lock()
-			//rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
-			rw.Flush()
-			mutex.Unlock()
-
-		}
-	}()
-
-	stdReader := bufio.NewReader(os.Stdin)
-
-	for {
-		fmt.Print("> ")
-		sendData, err := stdReader.ReadString('\n')
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		sendData = strings.Replace(sendData, "\n", "", -1)
-		_, err = strconv.Atoi(sendData)
-		// bm, err := srtconv.Atoi(sendData)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		mutex.Lock()
-		rw.Flush()
-		// do your stuff here
-		mutex.Unlock()
-	}
-
 }

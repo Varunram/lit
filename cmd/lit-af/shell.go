@@ -251,7 +251,7 @@ func (lc *litAfClient) Ls(textArgs []string) error {
 	bReply := new(litrpc.BalanceReply)
 	lReply := new(litrpc.ListeningPortsReply)
 
-	err := lc.rpccon.Call("LitRPC.ListConnections", nil, pReply)
+	err := lc.rpccon.Call("", "/ip4/127.0.0.1/tcp/8001/ipfs/QmaBwhATQoBinrwfi8cU2wNY8SYbJUULCSC3Y4dhSGb2ce", "LitRPC.ListConnections", nil, pReply)
 	if err != nil {
 		return err
 	}
@@ -263,7 +263,7 @@ func (lc *litAfClient) Ls(textArgs []string) error {
 		}
 	}
 
-	err = lc.rpccon.Call("LitRPC.ChannelList", nil, cReply)
+	err = lc.rpccon.Call("", "", "LitRPC.ChannelList", nil, cReply)
 	if err != nil {
 		return err
 	}
@@ -286,7 +286,7 @@ func (lc *litAfClient) Ls(textArgs []string) error {
 			c.Height, c.StateNum, c.Data, c.Pkh)
 	}
 
-	err = lc.rpccon.Call("LitRPC.TxoList", nil, tReply)
+	err = lc.rpccon.Call("", "", "LitRPC.TxoList", nil, tReply)
 	if err != nil {
 		return err
 	}
@@ -306,7 +306,7 @@ func (lc *litAfClient) Ls(textArgs []string) error {
 		fmt.Fprintf(color.Output, "\n")
 	}
 
-	err = lc.rpccon.Call("LitRPC.GetListeningPorts", nil, lReply)
+	err = lc.rpccon.Call("", "", "LitRPC.GetListeningPorts", nil, lReply)
 	if err != nil {
 		return err
 	}
@@ -317,7 +317,7 @@ func (lc *litAfClient) Ls(textArgs []string) error {
 			lnutil.White(lReply.LisIpPorts), lReply.Adr)
 	}
 
-	err = lc.rpccon.Call("LitRPC.Address", nil, aReply)
+	err = lc.rpccon.Call("", "", "LitRPC.Address", nil, aReply)
 	if err != nil {
 		return err
 	}
@@ -327,7 +327,7 @@ func (lc *litAfClient) Ls(textArgs []string) error {
 			lnutil.Address(a), lnutil.Address(aReply.LegacyAddresses[i]))
 	}
 
-	err = lc.rpccon.Call("LitRPC.Balance", nil, bReply)
+	err = lc.rpccon.Call("", "", "LitRPC.Balance", nil, bReply)
 	if err != nil {
 		return err
 	}
@@ -356,14 +356,14 @@ func (lc *litAfClient) Stop(textArgs []string) error {
 
 	reply := new(litrpc.StatusReply)
 
-	err := lc.rpccon.Call("LitRPC.Stop", nil, reply)
+	err := lc.rpccon.Call("", "", "LitRPC.Stop", nil, reply)
 	if err != nil {
 		return err
 	}
 
 	fmt.Fprintf(color.Output, "%s\n", reply.Status)
 
-	lc.rpccon.Close()
+	//lc.rpccon.Close() no close meths , weird
 	return fmt.Errorf("stopped remote lit node")
 }
 

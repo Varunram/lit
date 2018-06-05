@@ -3,25 +3,26 @@ package main
 import (
 	"flag"
 	"fmt"
-	"bufio"
-	"context"
+	//"bufio"
+	//"context"
 	"log"
-	"net/rpc"
-	"net/rpc/jsonrpc"
+	//"net/rpc"
+	//"net/rpc/jsonrpc"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"golang.org/x/net/websocket"
+	//"golang.org/x/net/websocket"
 
 	"github.com/chzyer/readline"
 	"github.com/fatih/color"
 	"github.com/mit-dci/lit/lnutil"
 	"github.com/mit-dci/lit/libp2p"
 
-	ma "github.com/libp2p/go-libp2p/gxlibs/github.com/multiformats/go-multiaddr"
-	peer "github.com/libp2p/go-libp2p/gxlibs/github.com/libp2p/go-libp2p-peer"
+	ma "github.com/multiformats/go-multiaddr"
+	peer "github.com/libp2p/go-libp2p-peer"
 	pstore "github.com/libp2p/go-libp2p-peerstore"
+	libp2prpc "github.com/hsanjuan/go-libp2p-gorpc"
 )
 
 /*
@@ -56,7 +57,7 @@ const (
 type litAfClient struct {
 	remote string
 	port   uint16
-	rpccon *rpc.Client
+	rpccon *libp2prpc.Client
 	//httpcon
 	litHomeDir string
 }
@@ -95,8 +96,8 @@ func main() {
 	*/
 
 	//	dialString := fmt.Sprintf("%s:%d", lc.remote, lc.port)
-	origin := "http://127.0.0.1/"
-	urlString := fmt.Sprintf("ws://%s:%d/ws", lc.remote, lc.port)
+	// origin := "http://127.0.0.1/"
+	// urlString := fmt.Sprintf("ws://%s:%d/ws", lc.remote, lc.port)
 	//	url := "ws://127.0.0.1:8000/ws"
 
 	ha, err := libp2p.MakeBasicHost(lc.port, 0)
@@ -111,7 +112,9 @@ func main() {
 	// given multiaddress
 
 	// force the user to input this, no other way?
-	ipfsaddr, err := ma.NewMultiaddr("/ip4/127.0.0.1/tcp/8001/ipfs/QmaGQjrDVSVnSnnhuW55kr6USuQVK8LApYsNjAgoAAk5k9")
+	p2pstring := "/ip4/127.0.0.1/tcp/8001/ipfs/"
+	p2pPeer := "QmaBwhATQoBinrwfi8cU2wNY8SYbJUULCSC3Y4dhSGb2ce"
+	ipfsaddr, err := ma.NewMultiaddr(p2pstring + p2pPeer)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -140,26 +143,20 @@ func main() {
 	// make a new stream from host B to host A
 	// it should be handled on host A by the handler we set above because
 	// we use the same /p2p/1.0.0 protocol
-	s, err := ha.NewStream(context.Background(), peerid, "/p2p/1.0.0")
-	if err != nil {
-		log.Fatalln(err)
-	}
+	// s, err := ha.NewStream(context.Background(), peerid, "/p2p/1.0.0")
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
 	// Create a buffered stream so that read and writes are non blocking.
-	rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
+	//rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
 
-	// Create a thread to read and write data.
-	go libp2p.WriteData(rw)
-	go libp2p.ReadData(rw)
+	// wsConn, err := websocket.Dial(urlString, "", origin)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// defer wsConn.Close()
 
-	select {} // hang forever
-
-	wsConn, err := websocket.Dial(urlString, "", origin)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer wsConn.Close()
-
-	lc.rpccon = jsonrpc.NewClient(wsConn)
+	lc.rpccon = libp2prpc.NewClientWithServer(ha, "tcp", libp2prpc.NewServer(ha, "tcp"))
 
 	go lc.RequestAsync()
 
@@ -194,10 +191,4 @@ func main() {
 			log.Fatal(err)
 		}
 	}
-
-	//	err = c.Call("LitRPC.Bal", nil, &br)
-	//	if err != nil {
-	//		log.Fatal("rpc call error:", err)
-	//	}
-	//	fmt.Printf("Sent bal req, response: txototal %d\n", br.TxoTotal)
 }
