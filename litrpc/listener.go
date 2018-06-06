@@ -12,7 +12,7 @@ import (
 	"golang.org/x/net/websocket"
 	"github.com/mit-dci/lit/libp2p"
 	"github.com/mit-dci/lit/qln"
-	//libp2prpc "github.com/hsanjuan/go-libp2p-gorpc"
+	libp2prpc "github.com/hsanjuan/go-libp2p-gorpc"
 )
 
 /*
@@ -49,14 +49,17 @@ func RPCListen(rpcl *LitRPC, host string, port uint16) {
 
 	//listenString := fmt.Sprintf("%s:%d", host, port)
 
-	ha, err := libp2p.MakeBasicHost(port, 0)
-	// don't pass a random seed and don't ask the user to provide this
+	ha, err := libp2p.MakeBasicHost(port, 722) // get a random source for this
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("The port is:", port)
 	ha.SetStreamHandler("/p2p/1.0.0", libp2p.HandleStream)
 	select {} // hang forever
+
+	libp2prpc.NewServer(ha, "http")
+	//server := libp2prpc.NewServer(ha, "tcp")
+	//serverClient := libp2prpc.NewClientWithServer(ha, "tcp", server)
 	//rpcServer := libp2prpc.NewServer(ha, "tcp")
 	//http.Handle("/ws", websocket.Handler(serveWS))
 	//log.Fatal(http.ListenAndServe(listenString, nil))

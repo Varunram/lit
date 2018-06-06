@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	//"bufio"
-	//"context"
+	"bufio"
+	"context"
 	"log"
 	//"net/rpc"
 	//"net/rpc/jsonrpc"
@@ -100,8 +100,7 @@ func main() {
 	// urlString := fmt.Sprintf("ws://%s:%d/ws", lc.remote, lc.port)
 	//	url := "ws://127.0.0.1:8000/ws"
 
-	ha, err := libp2p.MakeBasicHost(lc.port, 0)
-	// don't pass a random seed and don't ask the user to provide this
+	ha, err := libp2p.MakeBasicHost(lc.port, 721) // get randomness
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -111,10 +110,7 @@ func main() {
 	// The following code extracts target's peer ID from the
 	// given multiaddress
 
-	// force the user to input this, no other way?
-	p2pstring := "/ip4/127.0.0.1/tcp/8001/ipfs/"
-	p2pPeer := "QmaBwhATQoBinrwfi8cU2wNY8SYbJUULCSC3Y4dhSGb2ce"
-	ipfsaddr, err := ma.NewMultiaddr(p2pstring + p2pPeer)
+	ipfsaddr, err := ma.NewMultiaddr("/ip4/127.0.0.1/tcp/8012/ipfs/QmUsWKBMNckswS4gzTCYhTbwkv2cUBPSxShL6pEfnofnKN")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -143,20 +139,20 @@ func main() {
 	// make a new stream from host B to host A
 	// it should be handled on host A by the handler we set above because
 	// we use the same /p2p/1.0.0 protocol
-	// s, err := ha.NewStream(context.Background(), peerid, "/p2p/1.0.0")
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
+	s, err := ha.NewStream(context.Background(), peerid, "/p2p/1.0.0") // dial attempt will fail because we're trying to ocnnect two libp2p inst ances which a re on teh same hsots
+	if err != nil {
+		log.Fatalln(err)
+	}
 	// Create a buffered stream so that read and writes are non blocking.
-	//rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
+	bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
 
 	// wsConn, err := websocket.Dial(urlString, "", origin)
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
 	// defer wsConn.Close()
-
-	lc.rpccon = libp2prpc.NewClientWithServer(ha, "tcp", libp2prpc.NewServer(ha, "tcp"))
+	// connect via rpc here
+	lc.rpccon = libp2prpc.NewClient(ha, "tcp")
 
 	go lc.RequestAsync()
 

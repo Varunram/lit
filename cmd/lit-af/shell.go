@@ -251,7 +251,7 @@ func (lc *litAfClient) Ls(textArgs []string) error {
 	bReply := new(litrpc.BalanceReply)
 	lReply := new(litrpc.ListeningPortsReply)
 
-	err := lc.rpccon.Call("", "/ip4/127.0.0.1/tcp/8001/ipfs/QmaBwhATQoBinrwfi8cU2wNY8SYbJUULCSC3Y4dhSGb2ce", "LitRPC.ListConnections", nil, pReply)
+	err := lc.rpccon.Call("", "/ip4/127.0.0.1/tcp/8012/ipfs/QmUsWKBMNckswS4gzTCYhTbwkv2cUBPSxShL6pEfnofnKN", "LitRPC.ListConnections", nil, pReply)
 	if err != nil {
 		return err
 	}
