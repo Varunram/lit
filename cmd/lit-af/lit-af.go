@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"bufio"
-	"context"
+	//"bufio"
+	//"context"
 	"log"
 	//"net/rpc"
 	//"net/rpc/jsonrpc"
@@ -19,9 +19,8 @@ import (
 	"github.com/mit-dci/lit/lnutil"
 	"github.com/mit-dci/lit/libp2p"
 
-	ma "github.com/multiformats/go-multiaddr"
 	peer "github.com/libp2p/go-libp2p-peer"
-	pstore "github.com/libp2p/go-libp2p-peerstore"
+	//pstore "github.com/libp2p/go-libp2p-peerstore"
 	libp2prpc "github.com/hsanjuan/go-libp2p-gorpc"
 )
 
@@ -60,6 +59,7 @@ type litAfClient struct {
 	rpccon *libp2prpc.Client
 	//httpcon
 	litHomeDir string
+	peerId peer.ID
 }
 
 type Command struct {
@@ -72,12 +72,15 @@ func setConfig(lc *litAfClient) {
 	hostptr := flag.String("node", "127.0.0.1", "host to connect to")
 	portptr := flag.Int("p", 8001, "port to connect to")
 	dirptr := flag.String("dir", filepath.Join(os.Getenv("HOME"), litHomeDirName), "directory to save settings")
-
+	peerptr := flag.String("peer", "QmUsWKBMNckswS4gzTCYhTbwkv2cUBPSxShL6pEfnofnKN", "host to connect to")
+	libp2pString := "/ip4/127.0.0.1/tcp/8012/ipfs/"
 	flag.Parse()
 
 	lc.remote = *hostptr
 	lc.port = uint16(*portptr)
 	lc.litHomeDir = *dirptr
+	lc.peerId = libp2p.GetPeerId(libp2pString + *peerptr)
+	log.Println("id of host you'd like to connect to", lc.peerId)
 }
 
 // for now just testing how to connect and get messages back and forth
@@ -101,50 +104,31 @@ func main() {
 	//	url := "ws://127.0.0.1:8000/ws"
 
 	ha, err := libp2p.MakeBasicHost(lc.port, 721) // get randomness
+	// set this to be the same as listener for testing
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ha.SetStreamHandler("/p2p/1.0.0", libp2p.HandleStream)
-
-	// The following code extracts target's peer ID from the
-	// given multiaddress
-
-	ipfsaddr, err := ma.NewMultiaddr("/ip4/127.0.0.1/tcp/8012/ipfs/QmUsWKBMNckswS4gzTCYhTbwkv2cUBPSxShL6pEfnofnKN")
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	pid, err := ipfsaddr.ValueForProtocol(ma.P_IPFS)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	peerid, err := peer.IDB58Decode(pid)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	// Decapsulate the /ipfs/<peerID> part from the target
 	// /ip4/<a.b.c.d>/ipfs/<peer> becomes /ip4/<a.b.c.d>
-	targetPeerAddr, _ := ma.NewMultiaddr(
-		fmt.Sprintf("/ipfs/%s", peer.IDB58Encode(peerid)))
-	targetAddr := ipfsaddr.Decapsulate(targetPeerAddr)
+	//targetPeerAddr, _ := ma.NewMultiaddr(
+	//	fmt.Sprintf("/ipfs/%s", peer.IDB58Encode(lc.peerId)))
+	//targetAddr := ipfsaddr.Decapsulate(targetPeerAddr)
 
 	// We have a peer ID and a targetAddr so we add it to the peerstore
 	// so LibP2P knows how to contact it
-	ha.Peerstore().AddAddr(peerid, targetAddr, pstore.PermanentAddrTTL)
+	//ha.Peerstore().AddAddr(lc.peerId, targetAddr, pstore.PermanentAddrTTL)
 
-	log.Println("opening stream")
+	//log.Println("opening stream")
 	// make a new stream from host B to host A
 	// it should be handled on host A by the handler we set above because
 	// we use the same /p2p/1.0.0 protocol
-	s, err := ha.NewStream(context.Background(), peerid, "/p2p/1.0.0") // dial attempt will fail because we're trying to ocnnect two libp2p inst ances which a re on teh same hsots
-	if err != nil {
-		log.Fatalln(err)
-	}
+	// s, err := ha.NewStream(context.Background(), peerid, "/p2p/1.0.0") // dial attempt will fail because we're trying to ocnnect two libp2p inst ances which a re on teh same hsots
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
 	// Create a buffered stream so that read and writes are non blocking.
-	bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
+	// bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
 
 	// wsConn, err := websocket.Dial(urlString, "", origin)
 	// if err != nil {
@@ -152,8 +136,7 @@ func main() {
 	// }
 	// defer wsConn.Close()
 	// connect via rpc here
-	lc.rpccon = libp2prpc.NewClient(ha, "tcp")
-
+	lc.rpccon = libp2prpc.NewClient(ha, "rpc") // won't work for some reason
 	go lc.RequestAsync()
 
 	rl, err := readline.NewEx(&readline.Config{

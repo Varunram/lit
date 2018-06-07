@@ -251,7 +251,7 @@ func (lc *litAfClient) Ls(textArgs []string) error {
 	bReply := new(litrpc.BalanceReply)
 	lReply := new(litrpc.ListeningPortsReply)
 
-	err := lc.rpccon.Call("", "/ip4/127.0.0.1/tcp/8012/ipfs/QmUsWKBMNckswS4gzTCYhTbwkv2cUBPSxShL6pEfnofnKN", "LitRPC.ListConnections", nil, pReply)
+	err := lc.rpccon.Call(lc.peerId, "LitRPC.ListConnections", "", nil, pReply)
 	if err != nil {
 		return err
 	}
@@ -263,7 +263,7 @@ func (lc *litAfClient) Ls(textArgs []string) error {
 		}
 	}
 
-	err = lc.rpccon.Call("", "", "LitRPC.ChannelList", nil, cReply)
+	err = lc.rpccon.Call(lc.peerId, "", "LitRPC.ChannelList", nil, cReply)
 	if err != nil {
 		return err
 	}
@@ -286,7 +286,7 @@ func (lc *litAfClient) Ls(textArgs []string) error {
 			c.Height, c.StateNum, c.Data, c.Pkh)
 	}
 
-	err = lc.rpccon.Call("", "", "LitRPC.TxoList", nil, tReply)
+	err = lc.rpccon.Call(lc.peerId, "", "LitRPC.TxoList", nil, tReply)
 	if err != nil {
 		return err
 	}
@@ -306,7 +306,7 @@ func (lc *litAfClient) Ls(textArgs []string) error {
 		fmt.Fprintf(color.Output, "\n")
 	}
 
-	err = lc.rpccon.Call("", "", "LitRPC.GetListeningPorts", nil, lReply)
+	err = lc.rpccon.Call(lc.peerId, "", "LitRPC.GetListeningPorts", nil, lReply)
 	if err != nil {
 		return err
 	}
@@ -317,7 +317,7 @@ func (lc *litAfClient) Ls(textArgs []string) error {
 			lnutil.White(lReply.LisIpPorts), lReply.Adr)
 	}
 
-	err = lc.rpccon.Call("", "", "LitRPC.Address", nil, aReply)
+	err = lc.rpccon.Call(lc.peerId, "", "LitRPC.Address", nil, aReply)
 	if err != nil {
 		return err
 	}
@@ -327,7 +327,7 @@ func (lc *litAfClient) Ls(textArgs []string) error {
 			lnutil.Address(a), lnutil.Address(aReply.LegacyAddresses[i]))
 	}
 
-	err = lc.rpccon.Call("", "", "LitRPC.Balance", nil, bReply)
+	err = lc.rpccon.Call(lc.peerId, "", "LitRPC.Balance", nil, bReply)
 	if err != nil {
 		return err
 	}
@@ -356,7 +356,7 @@ func (lc *litAfClient) Stop(textArgs []string) error {
 
 	reply := new(litrpc.StatusReply)
 
-	err := lc.rpccon.Call("", "", "LitRPC.Stop", nil, reply)
+	err := lc.rpccon.Call(lc.peerId, "", "LitRPC.Stop", nil, reply)
 	if err != nil {
 		return err
 	}

@@ -54,10 +54,10 @@ func RPCListen(rpcl *LitRPC, host string, port uint16) {
 		log.Fatal(err)
 	}
 	log.Println("The port is:", port)
-	ha.SetStreamHandler("/p2p/1.0.0", libp2p.HandleStream)
-	select {} // hang forever
+	log.Println("ID: ", ha.ID())
 
-	libp2prpc.NewServer(ha, "http")
+	server := libp2prpc.NewServer(ha, "rpc")
+	libp2prpc.NewClientWithServer(ha, "rpc", server)
 	//server := libp2prpc.NewServer(ha, "tcp")
 	//serverClient := libp2prpc.NewClientWithServer(ha, "tcp", server)
 	//rpcServer := libp2prpc.NewServer(ha, "tcp")
