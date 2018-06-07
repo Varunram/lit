@@ -1,7 +1,7 @@
 package libp2p
 
 import (
-	"bufio"
+	//"bufio"
 	"context"
 	"crypto/rand"
 	// "encoding/json"
@@ -9,18 +9,18 @@ import (
 	"io"
 	"log"
 	mrand "math/rand"
-	"reflect"
-	"sync"
+	//"reflect"
+	//"sync"
 
 	//golog "github.com/ipfs/go-log"
 	libp2p "github.com/libp2p/go-libp2p"
 	crypto "github.com/libp2p/go-libp2p-crypto"
 	host "github.com/libp2p/go-libp2p-host"
-	net "github.com/libp2p/go-libp2p-net"
+	//net "github.com/libp2p/go-libp2p-net"
+	peer "github.com/libp2p/go-libp2p-peer"
 	ma "github.com/multiformats/go-multiaddr"
 )
 
-var mutex = &sync.Mutex{}
 // makeBasicHost creates a LibP2P host with a random peer ID listening on the
 // given multiaddress. Use secio.
 func MakeBasicHost(listenPort uint16, randseed int64) (host.Host, error) {
@@ -64,9 +64,23 @@ func MakeBasicHost(listenPort uint16, randseed int64) (host.Host, error) {
 	return basicHost, nil
 }
 
-func HandleStream(s net.Stream) {
-	log.Println("Got a new stream!")
-	// Create a buffer stream for non blocking read and write.
-	rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
-	log.Println(reflect.TypeOf(rw))
+func GetPeerId(hostID string) peer.ID {
+	// The following code extracts target's peer ID from the
+	// given multiaddress
+	ipfsaddr, err := ma.NewMultiaddr(hostID)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	pid, err := ipfsaddr.ValueForProtocol(ma.P_IPFS)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	peerid, err := peer.IDB58Decode(pid)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	//log.Println("PEER ID:", peerid)
+	return peerid
 }
