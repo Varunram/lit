@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/hex"
 	"io"
-	"log"
 	"math"
 	"net"
 	"time"
