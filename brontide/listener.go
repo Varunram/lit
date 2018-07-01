@@ -69,7 +69,7 @@ func NewListener(localStatic *btcec.PrivateKey, listenAddr string,
 	var err error
 	if config.Tor.Active && config.Tor.V2 {
 		//log.Println("CFG TORC", config.Tor.Control)
-		torController := tor.NewController(config.Tor.SOCKS)
+		torController := tor.NewController("localhost:9051")
 		//pass the confgi stuff
 		onionAddr, err := initTorController(torController, config)
 		if err != nil {
