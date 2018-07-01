@@ -127,23 +127,25 @@ func (lc *litAfClient) Connect(textArgs []string) error {
 	}
 
 	args.LNAddr = textArgs[0]
-	if textArgs[1] == "tor" && textArgs[2] == "true" {
-		// hardcode lengths for now, don't see any other new way
-		// usage: con <address> tor true
-		if len(textArgs) == 3 {
-			args.Tor = &litconfig.TorConfig{
-				SOCKS: "localhost:9050",
-				DNS:   "soa.nodes.lightning.directory", // hardcode this for now.
-				StreamIsolation: false, // hardcode
+	if len(textArgs) > 2 {
+		if textArgs[1] == "tor" && textArgs[2] == "true" {
+			// hardcode lengths for now, don't see any other new way
+			// usage: con <address> tor true
+			if len(textArgs) == 3 {
+				args.Tor = &litconfig.TorConfig{
+					SOCKS: "localhost:9050",
+					DNS:   "soa.nodes.lightning.directory", // hardcode this for now.
+					StreamIsolation: false, // hardcode
+				}
+			} else if len(textArgs) == 4 {
+				args.Tor = &litconfig.TorConfig{
+					SOCKS: textArgs[4],
+					DNS:   "soa.nodes.lightning.directory", // hardcode this for now.
+					StreamIsolation: false, // hardcode
+				}
 			}
-		} else if len(textArgs) == 4 {
-			args.Tor = &litconfig.TorConfig{
-				SOCKS: textArgs[4],
-				DNS:   "soa.nodes.lightning.directory", // hardcode this for now.
-				StreamIsolation: false, // hardcode
-			}
+			log.Println("Tor connecting via", args.Tor.SOCKS)
 		}
-		log.Println("Tor connecting via", args.Tor.SOCKS)
 	}
 
 	err := lc.Call("LitRPC.Connect", args, reply)
