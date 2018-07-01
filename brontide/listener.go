@@ -36,28 +36,26 @@ type Listener struct {
 // connections over Tor.
 func initTorController(torController *tor.Controller, conf *litconfig.Config) (string, error) {
 	if err := torController.Start(); err != nil {
-		log.Println("ERRORRS HERE")
+		log.Println("Error when initialising a tor controller")
 		return "", err
 	}
 	defaultPeerPort := 2448 // port it listens on
 	listenPorts := make(map[int]struct{})
-	listenPorts[2448] = struct{}{} // virtual port, lets keep it the same for now
+	listenPorts[2448] = struct{}{} // virtual port, lets keep both the same for now
+	// in future, if we wnat to enable people to map different virtPortsm we could.
 
 	// Once the port mapping has been set, we can go ahead and automatically
 	// create our onion service. The service's private key will be saved to
 	// disk in order to regain access to this service when restarting lit.
 	virtToTargPorts := tor.VirtToTargPorts{defaultPeerPort: listenPorts}
-	onionServiceAddr, err := torController.AddOnionV2( //onionServiceAddrs
+	onionAddrs, err := torController.AddOnionV2(
 		conf.Tor.V2PrivateKeyPath, virtToTargPorts,
 	)
 	if err != nil {
 		return "", err
 	}
-		//l, err := net.ListenTCP("tcp", "rskkr2vi6rd63mxr.onion:2448")
-		//if err != nil {
-		//	return nil, err
-		//}
-	return onionServiceAddr[0].String(), nil
+	return onionAddrs[0].String(), nil // return just the first one since we are
+	// listening on only one port
 }
 
 // A compile-time assertion to ensure that Conn meets the net.Listener interface.
@@ -71,12 +69,14 @@ func NewListener(localStatic *btcec.PrivateKey, listenAddr string,
 	var err error
 	if config.Tor.Active && config.Tor.V2 {
 		//log.Println("CFG TORC", config.Tor.Control)
-		torController := tor.NewController("localhost:9051") //pass the tor control ports
+		torController := tor.NewController(config.Net.SOCKS)
+		//pass the confgi stuff
 		onionAddr, err := initTorController(torController, config)
 		if err != nil {
 			log.Fatal(err)
 		}
 		log.Println("Broadcast onion address:", onionAddr)
+		// the address y ou msut make public
 	}
 
 	addr, err := net.ResolveTCPAddr("tcp", listenAddr)
@@ -97,7 +97,6 @@ func NewListener(localStatic *btcec.PrivateKey, listenAddr string,
 		conns:         make(chan maybeConn),
 		quit:          make(chan struct{}),
 	}
-	log.Println("LISTENING ON ADDRESS", brontideListener.tcp.Addr())
 	for i := 0; i < defaultHandshakes; i++ {
 		brontideListener.handshakeSema <- struct{}{}
 	}

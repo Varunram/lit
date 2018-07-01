@@ -5,9 +5,9 @@ import (
 	"log"
 	"strconv"
 
+	litconfig "github.com/mit-dci/lit/config"
 	"github.com/mit-dci/lit/lnutil"
 	"github.com/mit-dci/lit/qln"
-	litconfig"github.com/mit-dci/lit/config"
 	"github.com/mit-dci/lit/tor"
 )
 
@@ -39,8 +39,8 @@ func (r *LitRPC) Listen(args ListenArgs, reply *ListeningPortsReply) error {
 // ------------------------- connect
 type ConnectArgs struct {
 	LNAddr string
-	Tor *litconfig.TorConfig
-	Net tor.Net
+	Tor    *litconfig.TorConfig
+	Net    tor.Net
 }
 
 func (r *LitRPC) Connect(args ConnectArgs, reply *StatusReply) error {
@@ -63,17 +63,13 @@ func (r *LitRPC) Connect(args ConnectArgs, reply *StatusReply) error {
 		log.Printf("try string %s\n", connectAdr)
 
 	} else {
-		// use string as is, try to convert to ln address
 		connectAdr = args.LNAddr
 	}
-	//}
-	log.Println("CHECK THIS OUT", connectAdr)
 	if args.Tor != nil {
-		log.Println("Connecting via tor")
 		err = r.Node.DialPeer(connectAdr, &tor.ProxyNet{
-			SOCKS:           "localhost:9050",
-			DNS:             "soa.nodes.lightning.directory",
-			StreamIsolation: false,
+			SOCKS:           args.Tor.SOCKS,
+			DNS:             args.Tor.DNS,
+			StreamIsolation: args.Tor.StreamIsolation,
 		})
 	} else {
 		log.Println("Connecting via clearnet")

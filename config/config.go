@@ -37,8 +37,10 @@ type Config struct { // define a struct for usage with go-flags
 	AutoListenPort        string `long:"autoListenPort" description:"When auto reconnect enabled, starts listening on this port"`
 	Params                *coinparam.Params
 
-	Tor *TorConfig `group:"Tor" namespace:"tor"`
-	Net tor.Net
+	Tor *TorConfig `group:"Tor" namespace:"tor"` // neat little trick that can
+	// maybe expanded to other stuff in the future as well.
+	Net tor.Net // no mroe clearnet, we set it to clearnet if there's no tor
+	// option specified.
 }
 
 const (
@@ -52,8 +54,9 @@ const (
 	DefaultPeerPort              = 2448
 	DefaultAutoReconnectInterval = int64(60)
 	// tor config
-	DefaultTorSOCKSPort            = 9050
-	DefaultTorDNSHost              = "soa.nodes.lightning.directory" // hos our own tor host
+	DefaultTorSOCKSPort = 9050
+	DefaultTorDNSHost   = "soa.nodes.lightning.directory"
+	// TODO: host our own tor DNS host
 	DefaultTorDNSPort              = 53
 	DefaultTorControlPort          = 9051
 	DefaultTorV2PrivateKeyFilename = "v2_onion_private_key"
@@ -75,12 +78,18 @@ func NewConfigParser(conf *Config, options flags.Options) *flags.Parser {
 }
 
 type TorConfig struct {
-	Active           bool   `long:"active" description:"Allow outbound and inbound connections to be routed through Tor"`
+	Active bool `long:"active" description:"Allow outbound and inbound connections to be routed through Tor"`
+	// we can remove this if needed, seems unnecessary, but also as a failsafe to ensure people really kno w that they're doing
 	SOCKS            string `long:"socks" description:"The host:port that Tor's exposed SOCKS5 proxy is listening on"`
 	DNS              string `long:"dns" description:"The DNS server as host:port that Tor will use for SRV queries - NOTE must have TCP resolution enabled"`
 	StreamIsolation  bool   `long:"streamisolation" description:"Enable Tor stream isolation by randomizing user credentials for each connection."`
+	// you might need to enable this in torrc too
 	Control          string `long:"control" description:"The host:port that Tor is listening on for Tor control connections"`
+	// usually 9051, again, should set in torrc
 	V2               bool   `long:"v2" description:"Automatically set up a v2 onion service to listen for inbound connections"`
+	// most used mode, a bit flawed in some ways but still works good.
 	V2PrivateKeyPath string `long:"v2privatekeypath" description:"The path to the private key of the onion service being created"`
 	V3               bool   `long:"v3" description:"Use a v3 onion service to listen for inbound connections"`
+	// not supported yet at upstream tor, might need to wait a while for this. IF you *really* want to use this,
+	// generate your own v3 address and then feed it to lit
 }

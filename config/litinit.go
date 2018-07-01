@@ -96,9 +96,11 @@ func LitSetup(conf *Config) *[32]byte {
 		}
 	}
 
+	// set PrivKey path for tor hostname. In case you lose this, your address will change
 	conf.Tor.V2PrivateKeyPath = filepath.Join(conf.LitHomeDir, DefaultTorV2PrivateKeyFilename)
 
 	if conf.Tor.V2 && conf.Tor.V3 {
+		// quit if someone tries both things at the same time
 		log.Fatal(errors.New("either tor.v2 or tor.v3 can be set, " +
 			"but not both"))
 	}

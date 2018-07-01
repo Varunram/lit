@@ -5,9 +5,6 @@ import (
 	"net"
 )
 
-// TODO: this interface and its implementations should ideally be moved
-// elsewhere as they are not Tor-specific.
-
 // Net is an interface housing a Dial function and several DNS functions that
 // allows us to abstract the implementations of these functions over different
 // networks, e.g. clearnet, Tor net, etc.

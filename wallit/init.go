@@ -66,6 +66,7 @@ func NewWallit(
 
 	log.Printf("DB height %d\n", height)
 	incomingTx, incomingBlockheight, err := w.Hook.Start(height, spvhost, wallitpath, config, p)
+	// pass config to Start so that we can access the config in uspv
 	if err != nil {
 		log.Printf("NewWallit Hook.Start crash  %s ", err.Error())
 	}

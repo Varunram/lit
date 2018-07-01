@@ -45,33 +45,26 @@ var (
 		"controller-to-server hash")
 )
 
-// Controller is an implementation of the Tor Control protocol. This is used in
-// order to communicate with a Tor server. Its only supported method of
-// authentication is the SAFECOOKIE method.
-//
-// NOTE: The connection to the Tor server must be authenticated before
-// proceeding to send commands. Otherwise, the connection will be closed.
-//
-// TODO:
-//   * if adding support for more commands, extend this with a command queue?
-//   * place under sub-package?
-//   * support async replies from the server
+// Controller is the main entry point for talking to the Tor server which
+// you have to run locally. So you init a tor Controller and then decide whether
+// you need v2 or v3 or just connect via clearnet. You need to communicate with the Tor
+// Server before you s tart sending messages to it. Only cookie based authentication
+// is supproted here and you ened to enable it in your torconfig in order to be
+// able to talk to the tor server.
 type Controller struct {
-	// started is used atomically in order to prevent multiple calls to
-	// Start.
+	// started is used atomically in order to prevent multiple calls to Start.
 	started int32
 
-	// stopped is used atomically in order to prevent multiple calls to
-	// Stop.
+	// stopped is used atomically in order to prevent multiple calls to Stop.
 	stopped int32
 
 	// conn is the underlying connection between the controller and the
 	// Tor server. It provides read and write methods to simplify the
-	// text-based messages within the connection.
+	// text-based messages within the connection. Similar to net.Conn
 	conn *textproto.Conn
 
 	// controlAddr is the host:port the Tor server is listening locally for
-	// controller connections on.
+	// controller connections on. Usually localhost:9050
 	controlAddr string
 }
 
@@ -355,6 +348,8 @@ type VirtToTargPorts = map[int]map[int]struct{}
 // virtual ports to target ports should also be provided. Each virtual port will
 // be the ports where the onion service can be reached at, while the mapped
 // target ports will be the ports where the onion service is running locally.
+// If you can't distinguish between the two, use the same port (2448) that lit does
+// for both
 func (c *Controller) AddOnionV2(privateKeyFilename string,
 	virtToTargPorts VirtToTargPorts) ([]*OnionAddr, error) {
 

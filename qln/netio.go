@@ -4,13 +4,11 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
-	//"net"
 	"strings"
 
 	"github.com/adiabat/btcd/btcec"
 	"github.com/mit-dci/lit/brontide"
 	"github.com/mit-dci/lit/lnutil"
-	//litconfig"github.com/mit-dci/lit/config"
 	"github.com/mit-dci/lit/tor"
 )
 
@@ -128,7 +126,6 @@ func (nd *LitNode) DialPeer(connectAdr string, net tor.Net) error {
 	if where == "" {
 		where, _, err = Lookup(who, nd.TrackerURL, nd.ProxyURL)
 		if err != nil {
-			log.Println("NO TRACKER, COOL")
 			return err
 		}
 	}
@@ -137,6 +134,7 @@ func (nd *LitNode) DialPeer(connectAdr string, net tor.Net) error {
 	idPriv := nd.IdKey()
 
 	// Assign remote connection
+	// pass along the net we receive to brontide
 	newConn, err := brontide.Dial(idPriv, where, who, net)
 	if err != nil {
 		return err

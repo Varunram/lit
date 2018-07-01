@@ -10,7 +10,6 @@ import (
 	litconfig "github.com/mit-dci/lit/config"
 	"github.com/mit-dci/lit/litrpc"
 	"github.com/mit-dci/lit/lnutil"
-	//"github.com/mit-dci/lit/tor"
 )
 
 var sayCommand = &Command{
@@ -128,17 +127,28 @@ func (lc *litAfClient) Connect(textArgs []string) error {
 	}
 
 	args.LNAddr = textArgs[0]
-	if len(textArgs) == 3 && textArgs[1] == "tor" && textArgs[2] == "true" {
-		args.Tor = &litconfig.TorConfig{
-			SOCKS: "localhost:9050",
-			DNS:   "soa.nodes.lightning.directory",
+	if textArgs[1] == "tor" && textArgs[2] == "true" {
+		// hardcode lengths for now, don't see any other new way
+		// usage: con <address> tor true
+		if len(textArgs) == 3 {
+			args.Tor = &litconfig.TorConfig{
+				SOCKS: "localhost:9050",
+				DNS:   "soa.nodes.lightning.directory", // hardcode this for now.
+				StreamIsolation: false, // hardcode
+			}
+		} else if len(textArgs) == 4 {
+			args.Tor = &litconfig.TorConfig{
+				SOCKS: textArgs[4],
+				DNS:   "soa.nodes.lightning.directory", // hardcode this for now.
+				StreamIsolation: false, // hardcode
+			}
 		}
 		log.Println("Tor connecting via", args.Tor.SOCKS)
 	}
-	//args.Net = &tor.ClearNet{}
+
 	err := lc.Call("LitRPC.Connect", args, reply)
 	if err != nil {
-		log.Println("ERRORS HERE", err)
+		log.Println("LitRPC.Connect failed", err)
 		return err
 	}
 
