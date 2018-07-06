@@ -1,7 +1,7 @@
 package qln
 
 import (
-	"encoding/hex"
+	//"encoding/hex"
 	"fmt"
 	"log"
 	"net"
@@ -21,7 +21,7 @@ func (nd *LitNode) GetLisAddressAndPorts() (
 	var idPub [33]byte
 	copy(idPub[:], idPriv.PubKey().SerializeCompressed())
 
-	lisAdr := hex.EncodeToString(idPub[:])
+	lisAdr := lnutil.LitAdrFromPubkey(idPub)
 
 	nd.RemoteMtx.Lock()
 	ports := nd.LisIpPorts
@@ -42,7 +42,7 @@ func (nd *LitNode) TCPListener(
 	var idPub [33]byte
 	copy(idPub[:], idPriv.PubKey().SerializeCompressed())
 
-	adr := hex.EncodeToString(idPub[:])
+	adr := lnutil.LitAdrFromPubkey(idPub)
 
 	// Don't announce on the tracker if we are communicating via SOCKS proxy
 	if nd.ProxyURL == "" {
