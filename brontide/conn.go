@@ -43,6 +43,12 @@ func Dial(localPriv *btcec.PrivateKey, ipAddr string, remotePKH string,
 		return nil, err
 	}
 
+
+	conn1, err := dialer("tcp", ipAddr)
+	if err != nil {
+		return nil, err
+	}
+
 	theirPKH, err := lnutil.LitAdrBytes(remotePKH)
 	if err != nil {
 		return nil, err
@@ -52,15 +58,15 @@ func Dial(localPriv *btcec.PrivateKey, ipAddr string, remotePKH string,
 	// remote pkh may be 20 or 12 bytes
 	greetingMsg := localPriv.PubKey().SerializeCompressed()
 	greetingMsg = append(greetingMsg, theirPKH...)
-	if _, err := conn.Write(greetingMsg); err != nil {
+	if _, err := conn1.Write(greetingMsg); err != nil {
 		return nil, err
 	}
 
 	resp := make([]byte, 65)
-	if _, err := conn.Read(resp); err != nil {
+	if _, err := conn1.Read(resp); err != nil {
 		return nil, err
 	}
-
+	conn1.Close()
 	// read back 65 bytes; 33 for their pubkey
 	theirPub, err := btcec.ParsePubKey(resp[:33], btcec.S256())
 	if err != nil {
