@@ -6,8 +6,8 @@ import (
 	"net"
 	"strings"
 
-	"github.com/mit-dci/lit/btcutil/btcec"
 	"github.com/mit-dci/lit/brontide"
+	"github.com/mit-dci/lit/btcutil/btcec"
 	"github.com/mit-dci/lit/lnutil"
 )
 
@@ -20,7 +20,7 @@ func (nd *LitNode) GetLisAddressAndPorts() (
 	var idPub [33]byte
 	copy(idPub[:], idPriv.PubKey().SerializeCompressed())
 
-	lisAdr := lnutil.LitFullKeyAdrEncode(idPub)
+	lisAdr := lnutil.LitAdrFromPubkey(idPub)
 	nd.RemoteMtx.Lock()
 	ports := nd.LisIpPorts
 	nd.RemoteMtx.Unlock()
@@ -40,7 +40,7 @@ func (nd *LitNode) TCPListener(
 	var idPub [33]byte
 	copy(idPub[:], idPriv.PubKey().SerializeCompressed())
 
-	adr := lnutil.LitFullKeyAdrEncode(idPub)
+	adr := lnutil.LitAdrFromPubkey(idPub)
 
 	// Don't announce on the tracker if we are communicating via SOCKS proxy
 	if nd.ProxyURL == "" {
@@ -190,7 +190,7 @@ func (nd *LitNode) OutMessager() {
 type PeerInfo struct {
 	PeerNumber uint32
 	RemoteHost string
-	LitAdr 	   string
+	LitAdr     string
 	Nickname   string
 }
 
@@ -203,7 +203,7 @@ func (nd *LitNode) GetConnectedPeerList() []PeerInfo {
 		newPeer.PeerNumber = k
 		newPeer.RemoteHost = v.Con.RemoteAddr().String()
 		newPeer.Nickname = v.Nickname
-		newPeer.LitAdr = lnutil.LitFullKeyAdrEncode(pubArr)
+		newPeer.LitAdr = lnutil.LitAdrFromPubkey(pubArr)
 		peers = append(peers, newPeer)
 	}
 	return peers

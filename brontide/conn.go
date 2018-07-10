@@ -3,6 +3,8 @@ package brontide
 import (
 	"bytes"
 	"io"
+	"log"
+	"fmt"
 	"math"
 	"net"
 	"time"
@@ -41,16 +43,44 @@ func Dial(localPriv *btcec.PrivateKey, ipAddr string, remotePKH string,
 		return nil, err
 	}
 
-	// remotePKH = bech32 encoded address
-	remotePK, err := lnutil.LitFullAdrDecode(remotePKH)
-	// now we have the pubkey, dial via brontide
-	pubKey, err := btcec.ParsePubKey(remotePK[:], btcec.S256())
+	theirPKH, err := lnutil.LitAdrBytes(remotePKH)
 	if err != nil {
 		return nil, err
 	}
+
+	// Send: our pubkey, and the remote's pubkey hash.
+	// remote pkh may be 20 or 12 bytes
+	greetingMsg := localPriv.PubKey().SerializeCompressed()
+	greetingMsg = append(greetingMsg, theirPKH...)
+	if _, err := conn.Write(greetingMsg); err != nil {
+		return nil, err
+	}
+
+	resp := make([]byte, 65)
+	if _, err := conn.Read(resp); err != nil {
+		return nil, err
+	}
+
+	// read back 65 bytes; 33 for their pubkey
+	theirPub, err := btcec.ParsePubKey(resp[:33], btcec.S256())
+	if err != nil {
+		return nil, err
+	}
+
+	var temp [33]byte
+	copy(temp[:], resp[:33])
+
+	var temp2 [33]byte
+	copy(temp2[:], theirPKH)
+	// go slice comparison workaround
+	if (temp != temp2) {
+		log.Println("PKHs don't match. Quitting")
+		return nil, fmt.Errorf("PKHs don't match.")
+	}
+
 	b := &Conn{
 		conn:  conn,
-		noise: NewBrontideMachine(true, localPriv, pubKey),
+		noise: NewBrontideMachine(true, localPriv, theirPub),
 	}
 
 	// Initiate the handshake by sending the first act to the receiver.
