@@ -9,9 +9,8 @@ import (
 	"github.com/mit-dci/lit/lnutil"
 	"github.com/mit-dci/lit/logging"
 	"github.com/mit-dci/lit/portxo"
-
-	"github.com/mit-dci/lit/crypto/koblitz"
 	"github.com/mit-dci/lit/btcutil/chaincfg/chainhash"
+	"github.com/mit-dci/lit/crypto/koblitz"
 )
 
 // Uhh, quick channel.  For now.  Once you get greater spire it upgrades to

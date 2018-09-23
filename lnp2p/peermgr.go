@@ -4,6 +4,11 @@ package lnp2p
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"net"
+	"strconv"
+	"sync"
+	"time"
+
 	"github.com/mit-dci/lit/btcutil/hdkeychain"
 	"github.com/mit-dci/lit/crypto/koblitz"
 	"github.com/mit-dci/lit/eventbus"
@@ -12,10 +17,6 @@ import (
 	"github.com/mit-dci/lit/logging"
 	"github.com/mit-dci/lit/nat"
 	"github.com/mit-dci/lit/portxo"
-	"net"
-	"strconv"
-	"sync"
-	"time"
 )
 
 type privkey *koblitz.PrivateKey

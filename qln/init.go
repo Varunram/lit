@@ -2,11 +2,14 @@ package qln
 
 import (
 	"fmt"
+	"path/filepath"
+	"sync"
+
 	"github.com/boltdb/bolt"
 	"github.com/mit-dci/lit/btcutil"
 	"github.com/mit-dci/lit/btcutil/hdkeychain"
 	"github.com/mit-dci/lit/coinparam"
-	"github.com/mit-dci/lit/db/lnbolt" // TODO Abstract this more.
+	"github.com/mit-dci/lit/db/lnbolt"
 	"github.com/mit-dci/lit/dlc"
 	"github.com/mit-dci/lit/eventbus"
 	"github.com/mit-dci/lit/lncore"
@@ -15,8 +18,6 @@ import (
 	"github.com/mit-dci/lit/portxo"
 	"github.com/mit-dci/lit/wallit"
 	"github.com/mit-dci/lit/watchtower"
-	"path/filepath"
-	"sync"
 )
 
 // NewLitNode starts up a lit node.  Needs priv key, and a path.

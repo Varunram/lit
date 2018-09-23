@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/mit-dci/lit/logging"
-
 	"github.com/boltdb/bolt"
 	"github.com/mit-dci/lit/btcutil"
 	"github.com/mit-dci/lit/crypto/koblitz"

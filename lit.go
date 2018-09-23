@@ -7,15 +7,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/mit-dci/lit/logging"
-
+	flags "github.com/jessevdk/go-flags"
 	"github.com/mit-dci/lit/coinparam"
 	consts "github.com/mit-dci/lit/consts"
 	"github.com/mit-dci/lit/litrpc"
 	"github.com/mit-dci/lit/lnutil"
+	"github.com/mit-dci/lit/logging"
 	"github.com/mit-dci/lit/qln"
-
-	flags "github.com/jessevdk/go-flags"
 )
 
 type litConfig struct { // define a struct for usage with go-flags
@@ -55,10 +53,10 @@ type litConfig struct { // define a struct for usage with go-flags
 	Rpcport uint16 `short:"p" long:"rpcport" description:"Set RPC port to connect to"`
 	Rpchost string `long:"rpchost" description:"Set RPC host to listen to"`
 	// auto config
-	AutoReconnect                   bool   `long:"autoReconnect" description:"Attempts to automatically reconnect to known peers periodically."`
-	AutoReconnectInterval           int64  `long:"autoReconnectInterval" description:"The interval (in seconds) the reconnect logic should be executed"`
-	AutoReconnectOnlyConnectedCoins bool   `long:"autoReconnectOnlyConnectedCoins" description:"Only reconnect to peers that we have channels with in a coin whose coin daemon is available"`
-	AutoListenPort                  int `long:"autoListenPort" description:"When auto reconnect enabled, starts listening on this port"`
+	AutoReconnect                   bool  `long:"autoReconnect" description:"Attempts to automatically reconnect to known peers periodically."`
+	AutoReconnectInterval           int64 `long:"autoReconnectInterval" description:"The interval (in seconds) the reconnect logic should be executed"`
+	AutoReconnectOnlyConnectedCoins bool  `long:"autoReconnectOnlyConnectedCoins" description:"Only reconnect to peers that we have channels with in a coin whose coin daemon is available"`
+	AutoListenPort                  int   `long:"autoListenPort" description:"When auto reconnect enabled, starts listening on this port"`
 	Params                          *coinparam.Params
 }
 
